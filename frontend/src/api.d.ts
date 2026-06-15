@@ -1,0 +1,14 @@
+declare module '@/api' {
+  export const portalApi: any
+  export const serviceOrderApi: any
+  export const orderPhotoApi: any
+  export const roomApi: any
+  export const userApi: any
+  export const serviceTypeApi: any
+  export const walletApi: any
+}
+
+declare module '@/api/*' {
+  const api: any
+  export default api
+}

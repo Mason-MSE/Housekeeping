@@ -1,0 +1,22 @@
+[MASTER]
+ignore=CVS,.git,__pycache__,migrations
+jobs=1
+persistent=yes
+
+[MESSAGES CONTROL]
+disable=C0111,C0113,C0114,C0115,C0116,C0301,C0302,C0303,C0325,C0330,C0333,R0801,R0902,R0903,R0904,R0911,R0912,R0913,R0914,R0915,R0916,R0917
+
+[REPORTS]
+output-format=text
+reports=no
+
+[FORMAT]
+max-line-length=120
+max-module-lines=1500
+
+[DESIGN]
+max-args=10
+max-locals=25
+
+[IMPORTS]
+known-third-party=sqlalchemy,fastapi,pydantic,passlib,jose,bcrypt
