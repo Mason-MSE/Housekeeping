@@ -15,26 +15,37 @@ const props = defineProps<{
 }>()
 
 const userStore = useUserStore()
+// Loading state for orders data
 const loading = ref(false)
 
+// List of orders for the current user
 const myOrders = ref<any[]>([])
+// Total number of orders for pagination
 const totalOrders = ref(0)
+// Current page number for pagination
 const page = ref(1)
+// Number of items per page
 const pageSize = ref(20)
 
+// Current logged-in user ID
 const userId = computed(() => userStore.userInfo?.id || userStore.userInfo?.userId)
+// Current user's role list
 const userRoles = computed(() => userStore.userInfo?.roles || [userStore.userInfo?.role || 'guest'])
+// Whether the current user is a cleaner (or forced to cleaner role)
 const isCleaner = computed(() => {
   if (props.forcedRole) return props.forcedRole === 'cleaner'
   return userRoles.value.some(r => ['staff', 'cleaner', 'employee'].includes(String(r).toLowerCase()))
 })
+// Whether the current user is a customer (or forced to customer role)
 const isCustomer = computed(() => {
   if (props.forcedRole) return props.forcedRole === 'customer'
   return userRoles.value.some(r => ['guest', 'customer', 'user'].includes(String(r).toLowerCase()))
 })
 
+// Dynamic page title based on user role
 const pageTitle = computed(() => (isCleaner.value ? 'My Orders (Cleaner)' : 'My Orders (Customer)'))
 
+// Status display mapping with label and tag type for all order states
 const statusMap: Record<number, { label: string; type: string }> = {
   0: { label: 'Pending', type: 'info' },
   1: { label: 'Assigned', type: 'warning' },
@@ -47,6 +58,7 @@ const statusMap: Record<number, { label: string; type: string }> = {
   8: { label: 'Cancelled', type: 'info' }
 }
 
+// Reorder photos after drag-and-drop sorting
 const handleReorder = async () => {
   const currentPhotos = sortedPhotos.value
   const photoIds = currentPhotos.map((p: any) => p.id)
@@ -59,22 +71,30 @@ const handleReorder = async () => {
   }
 }
 
+// Image preview dialog visibility
 const previewVisible = ref(false)
+// Currently previewed image URL
 const previewUrl = ref('')
+// List of all preview image URLs
 const previewUrls = ref<string[]>([])
+// Index of the initially previewed image
 const previewInitialIndex = ref(0)
 
+// Review submission dialog visibility
 const reviewDialogVisible = ref(false)
+// Review form data model
 const reviewForm = ref({
   rating: 0,
   comment: ''
 })
 
+// Format payment amount to 2 decimal places
 const formatPayAmount = (order: any) => {
   const n = Number(order?.payment_amount)
   return Number.isFinite(n) ? n.toFixed(2) : '100.00'
 }
 
+// Handle order payment: confirm and process payment
 const handlePayment = async (order: any) => {
   try {
     await ElMessageBox.confirm(
@@ -97,6 +117,7 @@ const handlePayment = async (order: any) => {
   }
 }
 
+// Submit a review for the selected order
 const handleSubmitReview = async () => {
   if (!selectedOrder.value) return
   const r = Number(reviewForm.value.rating)
@@ -116,8 +137,10 @@ const handleSubmitReview = async () => {
   }
 }
 
+// List of complaints filed by the current customer
 const myComplaints = ref<any[]>([])
 
+// Load all complaints for the current customer
 const loadMyComplaints = async () => {
   if (!userId.value || !isCustomer.value) return
   try {
@@ -128,6 +151,7 @@ const loadMyComplaints = async () => {
   }
 }
 
+// Map of complaint by order ID for quick lookup
 const complaintByOrderId = computed(() => {
   const m = new Map<number, any>()
   for (const c of myComplaints.value) {
@@ -137,8 +161,10 @@ const complaintByOrderId = computed(() => {
 })
 
 /** List API uses complete_time; detail uses actual_complete */
+// Get the actual completion time of an order
 const orderCompletionTime = (order: any) => order?.actual_complete || order?.complete_time || null
 
+// Check if the order is still within the 15-day complaint window
 const withinComplaintWindow = (order: any) => {
   const ac = orderCompletionTime(order)
   if (!ac) return false
@@ -148,20 +174,24 @@ const withinComplaintWindow = (order: any) => {
   return Date.now() - done <= limitMs
 }
 
+// Get the complaint associated with a specific order
 const complaintForOrder = (order: any) => complaintByOrderId.value.get(Number(order.id))
 
 /** Current order detail dialog — customer complaint + evidence */
+// Complaint attached to the currently selected order in the detail dialog
 const selectedComplaint = computed(() => {
   if (!isCustomer.value || !selectedOrder.value) return null
   return complaintForOrder(selectedOrder.value) ?? null
 })
 
+// Get tag type color for complaint status
 const complaintStatusTagType = (status: string) => {
   if (status === 'resolved') return 'success'
   if (status === 'rejected') return 'info'
   return 'warning'
 }
 
+// Format complaint resolution type into human-readable text
 const formatComplaintResolution = (type: string | undefined) => {
   if (!type) return ''
   const map: Record<string, string> = {
@@ -174,9 +204,11 @@ const formatComplaintResolution = (type: string | undefined) => {
 }
 
 /** URLs for el-image preview gallery in Order Details */
+// Extract list of image URLs from complaint evidence for preview
 const complaintPreviewUrlList = (c: any) =>
   (c?.evidence || []).map((e: any) => e?.photo_url).filter((u: string) => Boolean(u && String(u).trim()))
 
+// Check if the user can file a complaint for the given order
 const canFileComplaint = (order: any) => {
   if (!isCustomer.value) return false
   if (Number(order.status) === 8) return false
@@ -186,11 +218,16 @@ const canFileComplaint = (order: any) => {
   return [4, 5, 6, 7].includes(Number(order.status))
 }
 
+// Complaint filing dialog visibility
 const complaintDialogVisible = ref(false)
+// Order ID for which a complaint is being filed
 const complaintOrderId = ref<number | null>(null)
+// Complaint form data model
 const complaintForm = ref({ title: '', description: '' })
+// List of uploaded evidence files for the complaint
 const complaintUploadList = ref<any[]>([])
 
+// Open the complaint dialog for a specific order
 const openComplaintDialog = (order: any) => {
   complaintOrderId.value = order.id
   complaintForm.value = { title: '', description: '' }
@@ -198,10 +235,12 @@ const openComplaintDialog = (order: any) => {
   complaintDialogVisible.value = true
 }
 
+// Handle complaint evidence file selection changes
 const handleComplaintFilesChange = (_file: any, files: any) => {
   complaintUploadList.value = files
 }
 
+// Submit the complaint form with evidence to the API
 const submitComplaint = async () => {
   if (!complaintOrderId.value) return
   const title = complaintForm.value.title.trim()
@@ -238,6 +277,7 @@ const submitComplaint = async () => {
   }
 }
 
+// Load orders for the current user (cleaner or customer)
 const loadMyOrders = async () => {
   if (!userId.value) return
   
@@ -259,18 +299,26 @@ const loadMyOrders = async () => {
   }
 }
 
+// Get status display label and tag type for an order status value
 const getStatusInfo = (status: number) => {
   return statusMap[status] || { label: 'Unknown', type: 'info' }
 }
 
+// Photos for the selected order detail view
 const detailPhotos = computed(() => orderPhotos.value)
 
+// Photo upload dialog visibility
 const photoDialogVisible = ref(false)
+// Order ID for which photos are being managed
 const photoOrderId = ref<number | null>(null)
+// Current photo type filter (before/after)
 const photoType = ref('before')
+// List of order photos
 const orderPhotos = ref<any[]>([])
+// List of files selected for upload
 const uploadFileList = ref<any[]>([])
 
+// Refresh the list of photos for a specific order
 const refreshOrderPhotos = async (orderId: number) => {
   const res = await orderPhotoApi.getByOrder(orderId)
   orderPhotos.value = Array.isArray(res) ? res : []
@@ -278,6 +326,7 @@ const refreshOrderPhotos = async (orderId: number) => {
 
 // Source-of-truth list for draggable (current photoType only).
 // Uses a getter+setter so vuedraggable can mutate ordering safely.
+// Sorted photo list filtered by current photo type, with getter/setter for drag-and-drop reordering
 const sortedPhotos = computed<any[]>({
   get: () => {
     return orderPhotos.value
@@ -295,9 +344,12 @@ const sortedPhotos = computed<any[]>({
   }
 })
 
+// Order detail dialog visibility
 const detailDialogVisible = ref(false)
+// Currently selected order for detail view
 const selectedOrder = ref<any>(null)
 
+// Open the detail dialog for a specific order
 const handleViewDetail = async (row: any) => {
   try {
     let res: any
@@ -317,12 +369,14 @@ const handleViewDetail = async (row: any) => {
   detailDialogVisible.value = true
 }
 
+// Open the detail dialog and review form for an order
 const handleOpenReview = async (row: any) => {
   await handleViewDetail(row)
   reviewForm.value = { rating: 0, comment: '' }
   reviewDialogVisible.value = true
 }
 
+// Open the photo upload dialog for a specific order and photo type
 const handleUploadPhoto = async (row: any, type: string) => {
   photoOrderId.value = row.id
   photoType.value = type
@@ -336,10 +390,12 @@ const handleUploadPhoto = async (row: any, type: string) => {
   photoDialogVisible.value = true
 }
 
+// Handle photo file selection changes in the upload dialog
 const handlePhotoFilesChange = (file: any, files: any) => {
   uploadFileList.value = files
 }
 
+// Upload selected photos for the current order to the API
 const confirmUploadPhotos = async () => {
   if (uploadFileList.value.length === 0) {
     ElMessage.warning('Please select photos to upload')
@@ -372,6 +428,7 @@ const confirmUploadPhotos = async () => {
   }
 }
 
+// Delete a photo after user confirmation
 const handleDeletePhoto = async (photoId: number) => {
   try {
     await ElMessageBox.confirm('Are you sure you want to delete this photo?', 'Confirm', {
@@ -390,6 +447,7 @@ const handleDeletePhoto = async (photoId: number) => {
   }
 }
 
+// Open image preview dialog for a specific photo
 const previewPhoto = (photo: any, photos: any[]) => {
   const urls = photos.map((p: any) => p.photo_url)
   previewUrls.value = urls
@@ -399,6 +457,7 @@ const previewPhoto = (photo: any, photos: any[]) => {
   previewVisible.value = true
 }
 
+// Mark an order as started (cleaner action)
 const handleStart = async (row: any) => {
   try {
     await serviceOrderApi.start(row.id)
@@ -410,6 +469,7 @@ const handleStart = async (row: any) => {
   }
 }
 
+// Mark an order as completed (cleaner action)
 const handleComplete = async (row: any) => {
   try {
     await serviceOrderApi.complete(row.id)
@@ -421,17 +481,20 @@ const handleComplete = async (row: any) => {
   }
 }
 
+// Handle pagination page change
 const handlePageChange = (newPage: number) => {
   page.value = newPage
   loadMyOrders()
 }
 
+// Handle pagination page size change
 const handleSizeChange = (newSize: number) => {
   pageSize.value = newSize
   page.value = 1
   loadMyOrders()
 }
 
+// Get tag type string for order status display
 const getStatusType = (status: number) => {
   const map: Record<number, string> = {
     0: 'info', 1: 'warning', 2: 'primary', 3: 'warning', 4: 'success', 5: 'danger'
@@ -439,13 +502,14 @@ const getStatusType = (status: number) => {
   return map[status] || 'info'
 }
 
-/** Decode API rating: legacy 1–5 or encoded ×10 (e.g. 20 -> 2) */
+// Decode API rating: legacy 1–5 or encoded ×10 (e.g. 20 -> 2)
 const normalizeOrderRating = (rating: unknown): number => {
   const n = Number(rating)
   if (!Number.isFinite(n) || n <= 0) return 0
   return n > 5 ? Math.round((n / 10) * 10) / 10 : n
 }
 
+// Parse order remarks to extract contact info and notes
 const parseRemarksContactAndNotes = (remarks: unknown): { contactLine: string; notes?: string } | null => {
   if (!remarks || typeof remarks !== 'string') return null
   const parts = remarks
@@ -465,11 +529,12 @@ const parseRemarksContactAndNotes = (remarks: unknown): { contactLine: string; n
   return { contactLine, notes }
 }
 
+// Computed parsed contact/notes from the selected order's remarks
 const parsedRemarks = computed(() => parseRemarksContactAndNotes(selectedOrder.value?.remarks))
 
 type StarState = 'full' | 'half' | 'empty'
 
-/** One entry per star (0–4): full / half / empty for display */
+// One entry per star (0–4): full / half / empty for display
 const getStarStates = (rating: unknown): StarState[] => {
   const raw = normalizeOrderRating(rating)
   const r = Math.round(raw * 10) / 10

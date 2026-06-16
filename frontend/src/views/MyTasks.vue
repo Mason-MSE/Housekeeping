@@ -4,20 +4,32 @@ import { portalService } from '@/services'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
+// User store instance
 const userStore = useUserStore()
+// Loading state for data fetching
 const loading = ref(false)
 
+// Currently active tab name
 const activeTab = ref('applications')
+// List of cleaner applications
 const applications = ref<any[]>([])
+// List of cleaner orders/tasks
 const orders = ref<any[]>([])
+// Total count of applications
 const totalApplications = ref(0)
+// Total count of orders
 const totalOrders = ref(0)
 
+// Pagination page number
 const page = ref(1)
+// Pagination page size
 const pageSize = ref(10)
+// Search filter for status
 const searchStatus = ref<number | undefined>(undefined)
 
+// Computed current user info
 const userInfo = computed(() => userStore.userInfo)
+// Computed whether the user is a cleaner/staff/employee
 const isCleaner = computed(() => ['staff', 'cleaner', 'employee'].includes(userInfo.value?.role))
 
 const statusOptions = [
@@ -45,6 +57,7 @@ const statusMap: Record<number, { label: string; type: string }> = {
   5: { label: 'Cancelled', type: 'danger' }
 }
 
+// Load cleaner applications from the API
 const loadApplications = async () => {
   if (!isCleaner.value || !userInfo.value?.id) return
   
@@ -66,6 +79,7 @@ const loadApplications = async () => {
   }
 }
 
+// Load cleaner orders/tasks from the API
 const loadOrders = async () => {
   if (!isCleaner.value || !userInfo.value?.id) return
   
@@ -87,6 +101,7 @@ const loadOrders = async () => {
   }
 }
 
+// Handle search: reset page and reload current tab data
 const handleSearch = () => {
   page.value = 1
   if (activeTab.value === 'applications') {
@@ -96,6 +111,7 @@ const handleSearch = () => {
   }
 }
 
+// Handle pagination page change
 const handlePageChange = (newPage: number) => {
   page.value = newPage
   if (activeTab.value === 'applications') {
@@ -105,6 +121,7 @@ const handlePageChange = (newPage: number) => {
   }
 }
 
+// Handle pagination page size change
 const handleSizeChange = (newSize: number) => {
   pageSize.value = newSize
   page.value = 1
@@ -115,10 +132,12 @@ const handleSizeChange = (newSize: number) => {
   }
 }
 
+// Get status display info (label and tag type) for a given status code
 const getStatusInfo = (status: number) => {
   return statusMap[status] || { label: 'Unknown', type: 'info' }
 }
 
+// Watcher: reload data when the active tab changes
 watch(activeTab, () => {
   page.value = 1
   searchStatus.value = undefined
@@ -129,6 +148,7 @@ watch(activeTab, () => {
   }
 })
 
+// Lifecycle hook: load applications on mount if user is a cleaner
 onMounted(() => {
   if (isCleaner.value) {
     loadApplications()

@@ -9,6 +9,7 @@ from model.Base import Base
 
 
 class ConsumptionModel(Base):
+    """Material/item consumption record for a service order, mapped to the 'consumption' table."""
     __tablename__ = 'consumption'
 
     consumption_id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -20,6 +21,7 @@ class ConsumptionModel(Base):
 
 
 class ScheduleModel(Base):
+    """Staff work schedule/shift record mapped to the 'schedule' table."""
     __tablename__ = 'schedule'
 
     schedule_id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -35,6 +37,7 @@ class ScheduleModel(Base):
 
 
 class ReviewModel(Base):
+    """Customer review/rating for a service order, mapped to the 'review' table."""
     __tablename__ = 'review'
 
     review_id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -50,6 +53,7 @@ class ReviewModel(Base):
 
 
 class AnnouncementModel(Base):
+    """System announcement targeting specific roles, mapped to the 'announcement' table."""
     __tablename__ = 'announcement'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

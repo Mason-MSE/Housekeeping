@@ -18,6 +18,7 @@ from schemas.housekeeping import (
 
 
 class ChangePasswordSchema(BaseModel):
+    """Schema for password change request."""
     old_password: str
     new_password: str
 
@@ -31,6 +32,15 @@ def read_all(
     current_user: UserModel = Depends(require_permission()),
     service: UserService = Depends(get_service(UserService))
 ):
+    """Retrieve all users (requires permission).
+
+    Args:
+        current_user: Authenticated user.
+        service: Injected UserService instance.
+
+    Returns:
+        List of UserSchema objects.
+    """
     return service.get_all()
 
 
@@ -40,6 +50,19 @@ def read_item(
     current_user: UserModel = Depends(require_permission()),
     service: UserService = Depends(get_service(UserService))
 ):
+    """Retrieve a single user by ID.
+
+    Args:
+        id: The user ID.
+        current_user: Authenticated user.
+        service: Injected UserService instance.
+
+    Returns:
+        UserSchema object.
+
+    Raises:
+        HTTPException 404: If the user is not found.
+    """
     db_obj = service.get(id)
     if not db_obj:
         raise HTTPException(status_code=404, detail='Item not found')
@@ -51,6 +74,15 @@ def create_item(
     item_in: UserCreateSchema,
     service: UserService = Depends(get_service(UserService))
 ):
+    """Create a new user (public registration).
+
+    Args:
+        item_in: User creation data.
+        service: Injected UserService instance.
+
+    Returns:
+        The created UserSchema object.
+    """
     return service.create(item_in)
 
 
@@ -62,7 +94,19 @@ def create_managed_user(
     ),
     service: UserService = Depends(get_service(UserService)),
 ):
-    """Create a user from admin User Management (authenticated)."""
+    """Create a user from admin User Management (authenticated).
+
+    Args:
+        item_in: Admin user creation data.
+        current_user: Authenticated admin/manager user.
+        service: Injected UserService instance.
+
+    Returns:
+        The created UserSchema object.
+
+    Raises:
+        HTTPException 400: If creation fails (e.g. duplicate username).
+    """
     try:
         return service.create_managed(item_in)
     except ValueError as exc:
@@ -76,6 +120,21 @@ def update_item(
     current_user: UserModel = Depends(require_permission()),
     service: UserService = Depends(get_service(UserService)),
 ):
+    """Update a user by ID. Prevents disabling your own account.
+
+    Args:
+        id: The user ID.
+        item_in: User update data (partial).
+        current_user: Authenticated user.
+        service: Injected UserService instance.
+
+    Returns:
+        The updated UserSchema object.
+
+    Raises:
+        HTTPException 400: If trying to disable your own account.
+        HTTPException 404: If the user is not found.
+    """
     if item_in.status is not None and item_in.status != 1 and id == current_user.id:
         raise HTTPException(status_code=400, detail='Cannot disable your own account')
     db_obj = service.update(id, item_in)
@@ -90,6 +149,20 @@ def delete_item(
     current_user: UserModel = Depends(require_permission()),
     service: UserService = Depends(get_service(UserService)),
 ):
+    """Delete a user by ID (soft delete). Prevents deleting your own account.
+
+    Args:
+        id: The user ID.
+        current_user: Authenticated user.
+        service: Injected UserService instance.
+
+    Returns:
+        dict with deletion result.
+
+    Raises:
+        HTTPException 400: If trying to delete your own account.
+        HTTPException 404: If the user is not found.
+    """
     if id == current_user.id:
         raise HTTPException(status_code=400, detail='Cannot delete your own account')
     result = service.delete(id)
@@ -104,6 +177,16 @@ def get_users_by_role(
     current_user: UserModel = Depends(require_permission()),
     service: UserService = Depends(get_service(UserService))
 ):
+    """Retrieve all users with a specific role.
+
+    Args:
+        role: The role name to filter by.
+        current_user: Authenticated user.
+        service: Injected UserService instance.
+
+    Returns:
+        List of UserSchema objects matching the role.
+    """
     return service.get_by_role(role)
 
 
@@ -111,7 +194,14 @@ def get_users_by_role(
 def get_2fa_status(
     current_user: UserModel = Depends(require_role("administrator", "admin", "manager", "guest", "cleaner", "staff", "employee"))
 ):
-    """Get current user's 2FA status"""
+    """Get current user's 2FA status.
+
+    Args:
+        current_user: Authenticated user.
+
+    Returns:
+        dict with is_2fa_enabled (bool) and has_secret (bool).
+    """
     return {
         "is_2fa_enabled": current_user.is_2fa_enabled == 1,
         "has_secret": bool(current_user.totp_secret)
@@ -124,7 +214,16 @@ def change_password(
     current_user: UserModel = Depends(require_role("administrator", "admin", "manager", "guest", "cleaner", "staff", "employee")),
     service: UserService = Depends(get_service(UserService))
 ):
-    """Change current user's password"""
+    """Change current user's password.
+
+    Args:
+        data: Old and new password pair.
+        current_user: Authenticated user.
+        service: Injected UserService instance.
+
+    Returns:
+        dict with success or error message.
+    """
     result = service.change_password(current_user.id, data.old_password, data.new_password)
     
     if "error" in result:
@@ -137,7 +236,14 @@ def change_password(
 def enable_2fa(
     current_user: UserModel = Depends(require_role("administrator", "admin", "manager", "guest", "cleaner", "staff", "employee"))
 ):
-    """Generate QR code for enabling 2FA"""
+    """Generate QR code URI and secret for enabling 2FA.
+
+    Args:
+        current_user: Authenticated user.
+
+    Returns:
+        dict with totp_secret and qr_code_uri for 2FA setup.
+    """
     from service.auth import AuthService
     
     db = next(get_db())
@@ -155,7 +261,15 @@ def verify_and_enable_2fa(
     code: str,
     current_user: UserModel = Depends(require_role("administrator", "admin", "manager", "guest", "cleaner", "staff", "employee"))
 ):
-    """Verify 2FA code and enable 2FA"""
+    """Verify 2FA code and activate 2FA on the user's account.
+
+    Args:
+        code: The TOTP code to verify.
+        current_user: Authenticated user.
+
+    Returns:
+        dict with success or error message.
+    """
     from service.auth import AuthService
     
     db = next(get_db())
@@ -172,7 +286,16 @@ def verify_and_enable_2fa(
 def disable_2fa(
     current_user: UserModel = Depends(require_role("administrator", "admin", "manager", "guest", "cleaner", "staff", "employee"))
 ):
-    """Disable 2FA for current user"""
+    """Disable 2FA for the current user.
+
+    Clears the TOTP secret and resets the 2FA flag.
+
+    Args:
+        current_user: Authenticated user.
+
+    Returns:
+        dict with success message.
+    """
     from datetime import datetime
     
     db = next(get_db())
@@ -192,7 +315,15 @@ def get_user_permissions(
     current_user: UserModel = Depends(require_role("administrator", "admin", "manager", "guest", "cleaner", "staff", "employee")),
     db: Session = Depends(get_db)
 ):
-    """Get current user's permissions"""
+    """Get current user's roles and permissions.
+
+    Args:
+        current_user: Authenticated user.
+        db: Database session.
+
+    Returns:
+        dict with roles (list of role names) and permissions (list of permission objects).
+    """
     from model.role import RoleModel
     from model.role_permission import RolePermissionModel
     from model.permission import PermissionModel
@@ -238,11 +369,20 @@ def get_user_role_resources(
     current_user: UserModel = Depends(require_role("administrator", "admin", "manager", "guest", "cleaner", "staff", "employee")),
     db: Session = Depends(get_db)
 ):
-    """Get current user's role resources - DEPRECATED, use /me/permissions instead"""
+    """Get current user's role resources - DEPRECATED, use /me/permissions instead.
+
+    Args:
+        current_user: Authenticated user.
+        db: Database session.
+
+    Returns:
+        Same result as get_user_permissions.
+    """
     return get_user_permissions(current_user, db)
 
 
 class UpdateUserRolesSchema(BaseModel):
+    """Schema for updating user role assignments."""
     role_ids: List[int]
 
 
@@ -253,6 +393,19 @@ def update_user_roles(
     current_user: UserModel = Depends(require_permission()),
     db: Session = Depends(get_db)
 ):
+    """Replace all role assignments for a user.
+
+    Deletes existing roles and assigns the new set of roles.
+
+    Args:
+        user_id: The target user ID.
+        data: New role IDs to assign.
+        current_user: Authenticated user (requires permission).
+        db: Database session.
+
+    Returns:
+        dict with success message.
+    """
     from model.user_role import UserRoleModel
     
     db.query(UserRoleModel).filter(UserRoleModel.user_id == user_id).delete()

@@ -7,6 +7,7 @@ from model.Base import Base
 
 
 class PaymentTransactionModel(Base):
+    """Payment transaction record linked to a service order, mapped to the 'payment_transaction' table."""
     __tablename__ = 'payment_transaction'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

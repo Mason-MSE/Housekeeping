@@ -11,10 +11,12 @@ const emit = defineEmits<{
   (e: 'select-cleaner', cleaner: any): void
 }>()
 
+// Limits the displayed cleaners to the first 4
 const displayedCleaners = computed(() => {
   return props.cleaners.slice(0, 4)
 })
 
+// Extracts initials from a full name
 const getInitials = (name: string) => {
   return name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'C'
 }

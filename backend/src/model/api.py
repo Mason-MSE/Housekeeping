@@ -7,6 +7,7 @@ from model.Base import Base
 
 
 class ApiModel(Base):
+    """API endpoint registry mapped to the 'api' table."""
     __tablename__ = 'api'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

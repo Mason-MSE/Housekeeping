@@ -67,26 +67,32 @@ import { useNotificationStore } from '@/stores/modules/notification'
 import { ElMessage } from 'element-plus'
 
 const notificationStore = useNotificationStore()
+// Whether the notification drawer is open
 const drawerVisible = ref(false)
 
+// Returns the list of notifications from the store
 const notifications = computed(() => notificationStore.notifications)
+// Returns the unread notification count from the store
 const unreadCount = computed(() => notificationStore.unreadCount)
 
-// 定时器用于定期刷新通知
+// Timer interval for periodic notification refresh
 let refreshInterval = null
 
+// Lifecycle hook: starts periodic notification refresh on mount
 onMounted(() => {
-  // 每30秒刷新一次通知
+  // Refresh notifications every 30 seconds
   refreshInterval = setInterval(refresh, 30000)
   refresh()
 })
 
+// Lifecycle hook: clears the refresh interval on unmount
 onUnmounted(() => {
   if (refreshInterval) {
     clearInterval(refreshInterval)
   }
 })
 
+// Fetches the latest notifications and unread count from the server
 async function refresh() {
   try {
     await notificationStore.fetchNotifications({ page: 1, page_size: 20 })
@@ -97,10 +103,12 @@ async function refresh() {
   }
 }
 
+// Opens the notification drawer
 function showNotifications() {
   drawerVisible.value = true
 }
 
+// Marks a single notification as read by its ID
 async function markAsRead(id) {
   try {
     await notificationStore.markAsRead(id)
@@ -110,6 +118,7 @@ async function markAsRead(id) {
   }
 }
 
+// Marks all notifications as read
 async function markAllAsRead() {
   try {
     await notificationStore.markAllAsRead()
@@ -120,11 +129,13 @@ async function markAllAsRead() {
   }
 }
 
+// Formats a timestamp string into a locale date string
 function formatTime(timeString) {
   const date = new Date(timeString)
   return date.toLocaleString()
 }
 
+// Maps notification type to the corresponding Element Plus tag type
 function getTagType(type) {
   const typeMap = {
     'info': '',

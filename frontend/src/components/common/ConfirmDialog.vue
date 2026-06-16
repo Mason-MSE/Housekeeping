@@ -57,28 +57,35 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'confirm', 'cancel'])
 
+// Controls the dialog visibility
 const visible = ref(false)
+// Loading state for the confirm button
 const confirmLoading = ref(false)
 
+// Syncs the dialog visibility with the modelValue prop
 watch(() => props.modelValue, (newVal) => {
   visible.value = newVal
 })
 
+// Syncs the confirm loading state with the loading prop
 watch(() => props.loading, (newVal) => {
   confirmLoading.value = newVal
 })
 
+// Closes the dialog and emits both cancel and modelValue events
 function handleClose() {
   visible.value = false
   emit('update:modelValue', false)
   emit('cancel')
 }
 
+// Emits the confirm event and sets the loading state
 function confirm() {
   confirmLoading.value = true
   emit('confirm')
 }
 
+// Cancels the dialog and triggers handleClose
 function cancel() {
   handleClose()
 }

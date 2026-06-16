@@ -8,35 +8,46 @@ import { request } from '@/api'
 export default {
   name: 'Settings',
   setup() {
+    // User store instance
     const userStore = useUserStore()
+    // Loading state for operations
     const loading = ref(false)
     
+    // Current active tab name
     const activeTab = ref('profile')
     
+    // Profile edit form model
     const profileForm = ref({
       full_name: '',
       email: '',
       phone: ''
     })
     
+    // Password change form model
     const passwordForm = ref({
       oldPassword: '',
       newPassword: '',
       confirmPassword: ''
     })
     
-    // 2FA related state
+    // 2FA enabled status
     const twoFactorEnabled = ref(false)
+    // Dialog visibility for 2FA QR code
     const showTwoFactorDialog = ref(false)
+    // 2FA QR code image data
     const twoFactorQrCode = ref('')
+    // 2FA verification code input
     const twoFactorCode = ref('')
+    // Loading state for 2FA operations
     const twoFactorLoading = ref(false)
     
+    // Theme settings (primary color, dark mode)
     const themeSettings = ref({
       primaryColor: '#409eff',
       darkMode: false
     })
     
+    // Layout settings (sidebar, tags view, header)
     const layoutSettings = ref({
       sidebarCollapsed: false,
       showTagsView: true,
@@ -54,6 +65,7 @@ export default {
       { value: '#000000', label: 'Black', color: '#000000' }
     ]
     
+    // Load theme and layout settings from localStorage
     const loadSettings = () => {
       const savedTheme = localStorage.getItem('theme_settings')
       if (savedTheme) {
@@ -68,6 +80,7 @@ export default {
       }
     }
     
+    // Load the current 2FA status from the API
     const loadTwoFactorStatus = async () => {
       try {
         const res = await request.get('/user/me/2fa-status')
@@ -77,6 +90,7 @@ export default {
       }
     }
     
+    // Apply theme settings to CSS custom properties
     const applyTheme = (theme: any) => {
       const root = document.documentElement
       root.style.setProperty('--el-color-primary', theme.primaryColor)
@@ -114,6 +128,7 @@ export default {
       }
     }
     
+    // Apply layout settings (sidebar collapse)
     const applyLayout = (layout: any) => {
       const sidebar = document.querySelector('.sidebar')
       if (sidebar) {
@@ -121,18 +136,21 @@ export default {
       }
     }
     
+    // Save and apply theme settings
     const handleThemeChange = () => {
       localStorage.setItem('theme_settings', JSON.stringify(themeSettings.value))
       applyTheme(themeSettings.value)
       ElMessage.success('Theme settings saved')
     }
     
+    // Save and apply layout settings, then reload
     const handleLayoutChange = () => {
       localStorage.setItem('layout_settings', JSON.stringify(layoutSettings.value))
       applyLayout(layoutSettings.value)
       window.location.reload()
     }
     
+    // Save profile information to the API
     const handleProfileSave = async () => {
       loading.value = true
       try {
@@ -147,6 +165,7 @@ export default {
       }
     }
     
+    // Change the user's password
     const handlePasswordChange = async () => {
       if (!passwordForm.value.oldPassword || !passwordForm.value.newPassword) {
         ElMessage.warning('Please fill in all password fields')
@@ -171,6 +190,7 @@ export default {
       }
     }
     
+    // Enable 2FA and generate QR code
     const handleEnableTwoFactor = async () => {
       twoFactorLoading.value = true
       try {
@@ -184,6 +204,7 @@ export default {
       }
     }
     
+    // Verify 2FA code to complete enablement
     const handleVerifyTwoFactor = async () => {
       if (!twoFactorCode.value) {
         ElMessage.warning('Please enter verification code')
@@ -207,6 +228,7 @@ export default {
       }
     }
     
+    // Disable 2FA after confirmation
     const handleDisableTwoFactor = async () => {
       try {
         await ElMessageBox.confirm(
@@ -232,12 +254,14 @@ export default {
       }
     }
     
+    // Clear all localStorage and sessionStorage data
     const handleClearCache = () => {
       localStorage.clear()
       sessionStorage.clear()
       ElMessage.success('Cache cleared successfully')
     }
     
+    // Reset all settings to their default values
     const handleResetSettings = () => {
       localStorage.removeItem('theme_settings')
       localStorage.removeItem('layout_settings')
@@ -255,6 +279,7 @@ export default {
       window.location.reload()
     }
     
+    // Lifecycle hook: populate profile form and load settings on mount
     onMounted(() => {
       if (userStore.userInfo) {
         profileForm.value = {

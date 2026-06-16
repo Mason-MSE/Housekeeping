@@ -5,18 +5,30 @@ import { ElMessage, ElMessageBox, ElImageViewer } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import draggable from 'vuedraggable'
 
+// User store instance
 const userStore = useUserStore()
+// Loading state for data fetching
 const loading = ref(false)
+// List of service orders
 const orderList = ref([])
+// Total count of orders
 const total = ref(0)
+// Pagination current page
 const currentPage = ref(1)
+// Pagination page size
 const pageSize = ref(10)
 
+// Computed user role list
 const userRoles = computed(() => userStore.userInfo?.roles || [userStore.userInfo?.role || 'guest'])
+// Computed whether the user can create orders
 const canCreateOrder = computed(() => userRoles.value.some(r => ['admin', 'guest'].includes(r)))
+// Computed whether the user can assign orders
 const canAssign = computed(() => userRoles.value.includes('admin'))
+// Computed whether the user is a cleaner
 const isCleaner = computed(() => userRoles.value.includes('cleaner'))
+// Computed whether the user is a guest
 const isGuestUser = computed(() => userRoles.value.includes('guest'))
+// Computed whether the dialog is in detail mode
 const isDetailMode = computed(() => dialogTitle.value === 'Order Detail')
 
 const statusOptions = [
@@ -28,34 +40,54 @@ const statusOptions = [
   { value: 5, label: 'Cancelled' }
 ]
 
+// Filter options for order list
 const filters = ref({
   status: null
 })
 
+// Dialog visibility for create/detail
 const dialogVisible = ref(false)
+// Dialog title
 const dialogTitle = ref('')
+// Dialog visibility for assign cleaner
 const assignDialogVisible = ref(false)
+// Order ID being assigned
 const assignOrderId = ref(null)
+// List of staff available for assignment
 const staffList = ref([])
+// Selected staff ID for assignment
 const selectedStaffId = ref(null)
+// Dialog visibility for rating
 const rateDialogVisible = ref(false)
+// Order ID being rated
 const rateOrderId = ref(null)
+// Rating form data
 const rateForm = ref({ rating: 5, comment: '' })
 
+// Dialog visibility for photo upload
 const photoDialogVisible = ref(false)
+// Order ID for photo operations
 const photoOrderId = ref(null)
+// Photo type (before/after)
 const photoType = ref('before')
+// Photo URL input
 const photoUrl = ref('')
+// List of order photos
 const orderPhotos = ref([])
 
+// Dialog visibility for payment
 const paymentDialogVisible = ref(false)
+// Order ID for payment
 const paymentOrderId = ref(null)
+// List of paid order IDs
 const paidOrders = ref<number[]>([])
 
+// Check if a given order has been paid
 const isOrderPaid = (orderId: number) => {
   return paidOrders.value.includes(orderId)
 }
 
+// Fetch paid orders from wallet transactions and cache in localStorage
 const fetchPaidOrders = async () => {
   try {
     const res = await walletApi.transactions()
@@ -68,12 +100,18 @@ const fetchPaidOrders = async () => {
     console.error('Failed to fetch transactions')
   }
 }
+// Payment amount for the current payment
 const paymentAmount = ref(0)
+// Photos displayed in order detail dialog
 const detailPhotos = ref<any[]>([])
+// File list for photo upload
 const uploadFileList = ref<any[]>([])
 
+// List of service types
 const serviceTypes = ref([])
+// List of rooms
 const rooms = ref([])
+// Form data for creating/editing orders
 const formData = ref({
   room_id: null,
   service_type_id: 1,
@@ -82,6 +120,7 @@ const formData = ref({
   remarks: ''
 })
 
+// Fetch available service types from API
 const fetchServiceTypes = async () => {
   try {
     serviceTypes.value = await serviceTypeApi.list()
@@ -90,6 +129,7 @@ const fetchServiceTypes = async () => {
   }
 }
 
+// Fetch available rooms from API
 const fetchRooms = async () => {
   try {
     rooms.value = await roomApi.list()
@@ -98,6 +138,7 @@ const fetchRooms = async () => {
   }
 }
 
+// Fetch paginated order list from API
 const fetchOrders = async () => {
   loading.value = true
   try {
@@ -116,6 +157,7 @@ const fetchOrders = async () => {
   }
 }
 
+// Open dialog to create a new order
 const handleAdd = async () => {
   await fetchServiceTypes()
   await fetchRooms()
@@ -124,6 +166,7 @@ const handleAdd = async () => {
   dialogVisible.value = true
 }
 
+// Submit the create-order form
 const handleSubmit = async () => {
   try {
     await serviceOrderApi.create(formData.value)
@@ -135,6 +178,7 @@ const handleSubmit = async () => {
   }
 }
 
+// Open assign dialog and load available cleaners
 const handleAssign = async (row: any) => {
   try {
     const staff = await userApi.getByRole('cleaner')
@@ -152,6 +196,7 @@ const handleAssign = async (row: any) => {
   }
 }
 
+// Confirm assignment of an order to the selected cleaner
 const confirmAssign = async () => {
   if (!selectedStaffId.value) {
     ElMessage.warning('Please select a cleaner')
@@ -169,6 +214,7 @@ const confirmAssign = async () => {
   }
 }
 
+// Start work on an order (change status to In Progress)
 const handleStart = async (row: any) => {
   try {
     await serviceOrderApi.start(row.order_id)
@@ -180,6 +226,7 @@ const handleStart = async (row: any) => {
   }
 }
 
+// Mark an order as completed
 const handleComplete = async (row: any) => {
   try {
     await serviceOrderApi.complete(row.order_id)
@@ -191,6 +238,7 @@ const handleComplete = async (row: any) => {
   }
 }
 
+// Cancel an order with a cancellation reason
 const handleCancel = async (row: any) => {
   try {
     await ElMessageBox.prompt('Please enter cancellation reason:', 'Cancel Order', {
@@ -210,12 +258,14 @@ const handleCancel = async (row: any) => {
   }
 }
 
+// Open the rating dialog for a completed order
 const handleRate = (row: any) => {
   rateOrderId.value = row.order_id
   rateForm.value = { rating: row.rating || 5, comment: row.guest_feedback || '' }
   rateDialogVisible.value = true
 }
 
+// Submit the rating for an order
 const confirmRate = async () => {
   try {
     await serviceOrderApi.rate(rateOrderId.value, rateForm.value.rating, rateForm.value.comment)
@@ -228,6 +278,7 @@ const confirmRate = async () => {
   }
 }
 
+// Open photo upload dialog for before/after photos
 const handleUploadPhoto = async (row: any, type: string) => {
   photoOrderId.value = row.order_id
   photoType.value = type
@@ -242,6 +293,7 @@ const handleUploadPhoto = async (row: any, type: string) => {
   photoDialogVisible.value = true
 }
 
+// Confirm uploading a single photo
 const confirmUploadPhoto = async () => {
   if (!photoUrl.value) {
     ElMessage.warning('Please upload a photo')
@@ -261,10 +313,12 @@ const confirmUploadPhoto = async () => {
   }
 }
 
+// Handle photo file selection change
 const handlePhotoFilesChange = (file: any, files: any) => {
   uploadFileList.value = files
 }
 
+// Upload multiple selected photos as base64
 const confirmUploadPhotos = async () => {
   if (uploadFileList.value.length === 0) {
     ElMessage.warning('Please select photos to upload')
@@ -299,6 +353,7 @@ const confirmUploadPhotos = async () => {
   }
 }
 
+// Delete a photo after confirmation
 const handleDeletePhoto = async (photoId: number) => {
   try {
     await ElMessageBox.confirm('Are you sure you want to delete this photo?', 'Confirm', {
@@ -318,6 +373,7 @@ const handleDeletePhoto = async (photoId: number) => {
   }
 }
 
+// Save the reordered photo sequence
 const handleReorder = async () => {
   const photoIds = orderPhotos.value.map((p: any) => p.id)
   try {
@@ -327,16 +383,21 @@ const handleReorder = async () => {
   }
 }
 
+// Image preview dialog visibility
 const previewVisible = ref(false)
+// Image preview URL
 const previewUrl = ref('')
+// List of image URLs for preview
 const previewUrls = ref<string[]>([])
 
+// Preview a photo in the image viewer
 const previewPhoto = (url: string, photos: any[]) => {
   previewUrls.value = photos.map((p: any) => p.photo_url)
   previewUrl.value = url
   previewVisible.value = true
 }
 
+// Open the payment dialog for an order
 const handlePayment = async (row: any) => {
   paymentOrderId.value = row.order_id
   const serviceType = serviceTypes.value.find(
@@ -346,6 +407,7 @@ const handlePayment = async (row: any) => {
   paymentDialogVisible.value = true
 }
 
+// Confirm and process payment for the order
 const confirmPayment = async () => {
   try {
     await walletApi.pay(paymentOrderId.value)
@@ -361,6 +423,7 @@ const confirmPayment = async () => {
   }
 }
 
+// Open the order detail dialog and load photos
 const handleDetail = async (row: any) => {
   formData.value = {
     room_id: row.room_id,
@@ -382,22 +445,26 @@ const handleDetail = async (row: any) => {
   dialogVisible.value = true
 }
 
+// Apply filters and refresh the order list
 const handleSearch = () => {
   currentPage.value = 1
   fetchOrders()
 }
 
+// Reset filters to defaults and refresh
 const handleReset = () => {
   filters.value = { status: null }
   currentPage.value = 1
   fetchOrders()
 }
 
+// Handle pagination page change
 const handlePageChange = (page: number) => {
   currentPage.value = page
   fetchOrders()
 }
 
+// Get the Element tag type for a given status code
 const getStatusType = (status: number) => {
   const map: Record<number, string> = {
     0: 'info', 1: 'warning', 2: 'primary', 3: 'warning', 4: 'success', 5: 'danger'
@@ -405,11 +472,13 @@ const getStatusType = (status: number) => {
   return map[status] || 'info'
 }
 
+// Format a date string for display
 const formatDate = (date: string) => {
   if (!date) return '-'
   return new Date(date).toLocaleString('en-US')
 }
 
+// Lifecycle hook: fetch orders, service types, and restore paid orders on mount
 onMounted(() => {
   fetchOrders()
   fetchServiceTypes()

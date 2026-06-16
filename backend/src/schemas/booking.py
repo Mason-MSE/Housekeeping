@@ -3,6 +3,7 @@ from datetime import datetime, date, time
 from typing import Optional
 
 class BookingSchema(BaseModel):
+    """Schema representing a booking record."""
     booking_id: Optional[int] = None
     user_id: Optional[int] = None
     car_id: Optional[int] = None
@@ -27,6 +28,7 @@ class BookingSchema(BaseModel):
         }
 
 class BookingCreateSchema(BaseModel):
+    """Schema for creating a new booking."""
     booking_id: int
     user_id: Optional[int] = None
     car_id: Optional[int] = None
@@ -46,6 +48,7 @@ class BookingCreateSchema(BaseModel):
         from_attributes = True
 
 class BookingUpdateSchema(BaseModel):
+    """Schema for updating an existing booking."""
     car_id: Optional[int] = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None

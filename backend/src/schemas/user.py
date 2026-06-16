@@ -3,6 +3,7 @@ from datetime import datetime, date, time
 from typing import Optional
 
 class UserSchema(BaseModel):
+    """Schema representing a user."""
     id: Optional[int] = None
     full_name: Optional[str] = Field(None, max_length=100)
     password: Optional[str] = Field(None, max_length=100)
@@ -24,6 +25,7 @@ class UserSchema(BaseModel):
         }
 
 class UserCreateSchema(BaseModel):
+    """Schema for creating a new user."""
     full_name: Optional[str] = Field(None, max_length=100)
     password: Optional[str] = Field(None, max_length=100)
     email: Optional[str] = Field(None, max_length=100)
@@ -35,6 +37,7 @@ class UserCreateSchema(BaseModel):
         from_attributes = True
 
 class UserUpdateSchema(BaseModel):
+    """Schema for updating an existing user."""
     full_name: Optional[str] = Field(None, max_length=100)
     phone: Optional[str] = Field(None, max_length=20)
     email: Optional[str] = Field(None, max_length=100)

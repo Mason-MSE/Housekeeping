@@ -28,8 +28,10 @@ const emit = defineEmits<{
   (e: 'submit', value: PortalBookForm): void
 }>()
 
+// Reactive copy of the booking form data
 const formData = ref<PortalBookForm>({ ...props.form })
 
+// Resets the form data when the dialog becomes visible
 watch(
   () => props.visible,
   (val) => {
@@ -39,6 +41,7 @@ watch(
   }
 )
 
+// Watches for external form prop changes and syncs the local form data
 watch(
   () => props.form,
   (val) => {
@@ -47,16 +50,19 @@ watch(
   { deep: true }
 )
 
+// Available priority levels for a service order
 const priorityOptions = [
   { value: 0, label: 'Normal' },
   { value: 1, label: 'Urgent' },
   { value: 2, label: 'Emergency' }
 ]
 
+// Emits the form data when the user confirms the booking
 const handleSubmit = () => {
   emit('submit', { ...formData.value })
 }
 
+// Closes the dialog by emitting the update:visible event
 const closeDialog = () => {
   emit('update:visible', false)
 }

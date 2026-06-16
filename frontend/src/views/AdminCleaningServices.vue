@@ -3,12 +3,18 @@ import { ref, onMounted, computed } from 'vue'
 import { serviceTypeApi, permissionApi } from '@/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
+// Loading state for the data table
 const loading = ref(false)
+// List of service type items
 const items = ref<any[]>([])
+// Current user's permission code list
 const permissionCodes = ref<string[]>([])
 
+// Dialog visibility for create/edit form
 const dialogVisible = ref(false)
+// ID of the service being edited, null when creating
 const editingId = ref<number | null>(null)
+// Form data for creating/editing a service type
 const form = ref({
   type_name: '',
   description: '',
@@ -16,15 +22,19 @@ const form = ref({
   market_price: null as number | null
 })
 
+// Whether user has permission to view service types
 const canView = computed(() => permissionCodes.value.includes('cleaning_service:view'))
+// Whether user has permission to create service types
 const canCreate = computed(() => permissionCodes.value.includes('cleaning_service:create'))
+// Whether user has permission to update service types
 const canUpdate = computed(() => permissionCodes.value.includes('cleaning_service:update'))
+// Whether user has permission to delete service types
 const canDelete = computed(() => permissionCodes.value.includes('cleaning_service:delete'))
 
-/** Hide Actions column when user has neither update nor delete. */
+// Hide Actions column when user has neither update nor delete
 const showActionsColumn = computed(() => canUpdate.value || canDelete.value)
 
-/** Dialog primary action: create needs create perm, edit needs update perm. */
+// Dialog primary action: create needs create perm, edit needs update perm
 const canSaveInDialog = computed(() => {
   if (editingId.value == null) {
     return canCreate.value
@@ -32,6 +42,7 @@ const canSaveInDialog = computed(() => {
   return canUpdate.value
 })
 
+// Load the current user's permission codes from the API
 const loadMyPermissions = async () => {
   try {
     const res: unknown = await permissionApi.getMyPermissions()
@@ -43,6 +54,7 @@ const loadMyPermissions = async () => {
   }
 }
 
+// Fetch the list of service types from the API
 const loadList = async () => {
   if (!canView.value) return
   loading.value = true
@@ -57,6 +69,7 @@ const loadList = async () => {
   }
 }
 
+// Open the dialog for creating a new service type
 const openCreate = () => {
   if (!canCreate.value) {
     ElMessage.warning('No permission to create')
@@ -67,6 +80,7 @@ const openCreate = () => {
   dialogVisible.value = true
 }
 
+// Open the dialog for editing an existing service type
 const openEdit = (row: any) => {
   if (!canUpdate.value) {
     ElMessage.warning('No permission to update')
@@ -82,6 +96,7 @@ const openEdit = (row: any) => {
   dialogVisible.value = true
 }
 
+// Save (create or update) a service type via the API
 const save = async () => {
   if (editingId.value != null && !canUpdate.value) {
     ElMessage.warning('No permission to update')
@@ -124,6 +139,7 @@ const save = async () => {
   }
 }
 
+// Soft-delete a service type after user confirmation
 const remove = async (row: any) => {
   if (!canDelete.value) {
     ElMessage.warning('No permission to delete')
@@ -142,11 +158,13 @@ const remove = async (row: any) => {
   }
 }
 
+// Format a numeric value as a currency string with 2 decimal places
 const formatMoney = (v: unknown) => {
   const n = Number(v)
   return Number.isFinite(n) ? n.toFixed(2) : '—'
 }
 
+// Lifecycle hook: load permissions and service types on mount
 onMounted(async () => {
   await loadMyPermissions()
   await loadList()

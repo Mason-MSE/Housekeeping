@@ -48,6 +48,7 @@ def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
 ) -> UserModel:
+    """FastAPI dependency that returns the authenticated user from the JWT token, or raises 401."""
     try:
         payload = decode_access_token(token)
         username: str = payload.get("sub")
@@ -141,6 +142,7 @@ def require_role(*allowed_roles: str):
 S = TypeVar("S")
 
 def get_service(service_cls: Type[S]):
+    """FastAPI dependency factory that instantiates and injects a service class with a DB session."""
     def _get_service(db: Session = Depends(get_db)) -> S:
         return service_cls(db=db)
     return _get_service

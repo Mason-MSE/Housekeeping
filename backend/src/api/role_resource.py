@@ -19,15 +19,29 @@ router = APIRouter(prefix='/api/role-resource', tags=['role_resource'])
 
 @router.get('/', response_model=List[RoleResourceSchema])
 def read_all(service: role_resource = Depends(get_service(role_resource))):
-    """
-    Retrieve all records.
+    """Retrieve all role-resource association records.
+
+    Args:
+        service: Injected role_resource service instance.
+
+    Returns:
+        List of RoleResourceSchema objects.
     """
     return service.get_all()
 
 @router.get('/{id}', response_model=RoleResourceSchema)
 def read_item(id, service: role_resource = Depends(get_service(role_resource))):
-    """
-    Retrieve a single record by primary key.
+    """Retrieve a single role-resource association record by primary key.
+
+    Args:
+        id: The role-resource association ID.
+        service: Injected role_resource service instance.
+
+    Returns:
+        RoleResourceSchema object.
+
+    Raises:
+        HTTPException 404: If the record is not found.
     """
     db_obj = service.get(id)
     if not db_obj:
@@ -36,15 +50,31 @@ def read_item(id, service: role_resource = Depends(get_service(role_resource))):
 
 @router.post('/', response_model=RoleResourceSchema)
 def create_item(item_in: RoleResourceCreateSchema, service: role_resource = Depends(get_service(role_resource))):
-    """
-    Create a new record.
+    """Create a new role-resource association record.
+
+    Args:
+        item_in: Role-resource association creation data.
+        service: Injected role_resource service instance.
+
+    Returns:
+        The created RoleResourceSchema object.
     """
     return service.create(item_in)
 
 @router.put('/{id}', response_model=RoleResourceSchema)
 def update_item(id, item_in: RoleResourceUpdateSchema, service: role_resource = Depends(get_service(role_resource))):
-    """
-    Update an existing record by primary key.
+    """Update an existing role-resource association record by primary key.
+
+    Args:
+        id: The role-resource association ID.
+        item_in: Update data (partial).
+        service: Injected role_resource service instance.
+
+    Returns:
+        The updated RoleResourceSchema object.
+
+    Raises:
+        HTTPException 404: If the record is not found.
     """
     db_obj = service.get(id)
     if not db_obj:
@@ -53,8 +83,17 @@ def update_item(id, item_in: RoleResourceUpdateSchema, service: role_resource = 
 
 @router.delete('/{id}')
 def delete_item(id, service: role_resource = Depends(get_service(role_resource))):
-    """
-    Delete a record by primary key.
+    """Delete a role-resource association record by primary key.
+
+    Args:
+        id: The role-resource association ID.
+        service: Injected role_resource service instance.
+
+    Returns:
+        dict with success status.
+
+    Raises:
+        HTTPException 404: If the record is not found.
     """
     db_obj = service.get(id)
     if not db_obj:
@@ -64,8 +103,14 @@ def delete_item(id, service: role_resource = Depends(get_service(role_resource))
 
 @router.post('/paginated', response_model=Dict[str, Any])
 def read_paginated(pageParam: PaginationRequest, service: role_resource = Depends(get_service(role_resource))):
-    """
-    Paginated list of records with optional filters and sorting.
+    """Paginated list of role-resource records with optional filters and sorting.
+
+    Args:
+        pageParam: Pagination parameters including page, page_size, filters, and order_by.
+        service: Injected role_resource service instance.
+
+    Returns:
+        dict with current_page, page_total, total, and items (list of RoleResourceSchema).
     """
     filter_dict: Dict[str, Any] = {}
     if pageParam.filters:

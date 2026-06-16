@@ -27,5 +27,6 @@ class role_resource(ServiceBase[RoleResourceModel, RoleResourceCreateSchema, Rol
     business logic for this model.
     """
     def __init__(self, db: Session):
+        """Initialize the role_resource service with DB session and CRUD instance."""
         crud_instance = super().get_crud(crud_cls=role_resource_crud, model_cls=RoleResourceModel)
         super().__init__(crud=crud_instance, db=db)

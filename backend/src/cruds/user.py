@@ -5,4 +5,5 @@ from schemas.user import UserCreateSchema,UserUpdateSchema
 
 # CRUD Functions
 class user(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
+    """CRUD class for user operations, inheriting from CRUDBase."""
     pass

@@ -10,6 +10,7 @@ from model.Base import Base
 
 
 class ServiceOrderModel(Base):
+    """Service order record mapped to the 'service_order' table."""
     __tablename__ = 'service_order'
 
     order_id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -40,6 +41,7 @@ class ServiceOrderModel(Base):
 
 
 class OrderPhotoModel(Base):
+    """Photo attached to a service order, mapped to the 'order_photo' table."""
     __tablename__ = 'order_photo'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

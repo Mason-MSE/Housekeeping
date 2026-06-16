@@ -9,22 +9,27 @@ from service.in_app_notify import notify_user
 
 class OrderPhotoService:
     def __init__(self, db: Session):
+        """Initialize the order photo service with a database session."""
         self.db = db
         self.crud = CRUDBase(OrderPhotoModel)
 
     def get_all(self):
+        """Retrieve all order photos."""
         return self.crud.get_all(self.db)
 
     def get(self, id: int):
+        """Retrieve a single order photo by its ID."""
         return self.crud.get(self.db, id)
 
     def get_by_order(self, order_id: int):
+        """Retrieve all non-deleted photos for a given order, sorted by sort_order."""
         return self.db.query(OrderPhotoModel).filter(
             OrderPhotoModel.order_id == order_id,
             OrderPhotoModel.is_deleted == 0
         ).order_by(OrderPhotoModel.sort_order.asc()).all()
 
     def create(self, obj_in: OrderPhotoCreateSchema, uploaded_by: int):
+        """Create a new order photo and notify the counterparty."""
         data = obj_in.model_dump()
         data['uploaded_by'] = uploaded_by
 
@@ -68,6 +73,7 @@ class OrderPhotoService:
         return obj
 
     def reorder_photos(self, photo_ids: list):
+        """Reorder photos by assigning sort_order based on list position."""
         for index, photo_id in enumerate(photo_ids):
             photo = self.db.query(OrderPhotoModel).filter(OrderPhotoModel.id == photo_id).first()
             if photo:
@@ -76,6 +82,7 @@ class OrderPhotoService:
         return {'ok': True}
 
     def delete(self, id: int):
+        """Soft delete an order photo by its ID."""
         db_obj = self.crud.get(self.db, id)
         if not db_obj:
             return False

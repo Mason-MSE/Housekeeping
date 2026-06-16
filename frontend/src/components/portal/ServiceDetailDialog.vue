@@ -13,16 +13,20 @@ const emit = defineEmits<{
   (e: 'select-cleaner'): void
 }>()
 
+// Currently active tab ('overview', 'process', or 'precautions')
 const activeTab = ref('overview')
+// The cleaner selected for this service booking
 const selectedCleaner = ref<any>(null)
 
+// Mapping of service type IDs to their hero images
 const serviceImages: Record<number, string> = {
-  1: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&q=80',
+   1: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&q=80',
   2: 'https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=800&q=80',
   3: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80',
   4: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80',
 }
 
+// Computes the cover image URL from the service's process steps or a default image
 const coverImage = computed(() => {
   if (props.service?.process_steps?.length > 0 && props.service.process_steps[0].image_url) {
     return props.service.process_steps[0].image_url
@@ -30,14 +34,17 @@ const coverImage = computed(() => {
   return serviceImages[props.service?.type_id] || serviceImages[1]
 })
 
+// Emits a book event when the user clicks the book now button
 const handleBookNow = () => {
   emit('book')
 }
 
+// Closes the dialog by emitting the update:visible event
 const closeDialog = () => {
   emit('update:visible', false)
 }
 
+// Resets the active tab to 'overview' whenever the dialog becomes visible
 watch(() => props.visible, (val) => {
   if (val) {
     activeTab.value = 'overview'

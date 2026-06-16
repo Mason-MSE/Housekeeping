@@ -14,9 +14,12 @@ const emit = defineEmits<{
   (e: 'search'): void
 }>()
 
+// Search keyword for filtering cleaners
 const search = ref('')
+// Selected sort option
 const sortBy = ref('')
 
+// Resets search and sort when the dialog becomes visible
 watch(() => props.visible, (val) => {
   if (val) {
     search.value = ''
@@ -24,14 +27,17 @@ watch(() => props.visible, (val) => {
   }
 })
 
+// Emits a search event with the current keyword and sort option
 const handleSearch = () => {
   emit('search', { search: search.value, sort_by: sortBy.value })
 }
 
+// Emits the selected cleaner to the parent
 const selectCleaner = (cleaner: any) => {
   emit('select', cleaner)
 }
 
+// Closes the dialog by emitting the update:visible event
 const closeDialog = () => {
   emit('update:visible', false)
 }

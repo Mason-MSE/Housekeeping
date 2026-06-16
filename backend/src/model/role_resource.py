@@ -10,6 +10,7 @@ from model.Base import Base
 
 
 class RoleResourceModel(Base):
+    """Many-to-many association between roles and resources, mapped to the 'role_resource' table."""
     __tablename__ = 'role_resource'
 
     id = mapped_column(Integer, primary_key=True)

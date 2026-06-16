@@ -3,21 +3,31 @@ import { ref, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { request, permissionApi } from '@/api'
 
+// Loading state for the data table
 const loading = ref(false)
+// List of API entries
 const apis = ref<any[]>([])
+// List of available permissions for the filter/dropdown
 const permissions = ref<any[]>([])
+// Total number of APIs matching the query
 const total = ref(0)
+// Current pagination page
 const page = ref(1)
+// Number of items per page
 const pageSize = ref(20)
 
+// Filter criteria for the API list
 const filters = ref({
   method: '',
   permission_id: null as number | null,
   api_path: ''
 })
 
+// Dialog visibility for create/edit API form
 const showDialog = ref(false)
+// Whether the dialog is in edit mode
 const isEdit = ref(false)
+// Form data for creating/editing an API entry
 const formData = ref<any>({
   id: null,
   api_path: '',
@@ -26,18 +36,25 @@ const formData = ref<any>({
   description: ''
 })
 
+// HTTP method options for the filter dropdown
 const methodOptions = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
 
+// Current user's permission codes
 const permissionCodes = ref<string[]>([])
+// Whether the user has any api:* permissions assigned
 const hasApiPermissions = computed(() =>
   permissionCodes.value.some((c) => typeof c === 'string' && c.startsWith('api:')),
 )
-// 如果当前角色没有任何 api:* 权限条目，保持原行为（不把页面“隐藏成空白”）
+// Whether user can view APIs (defaults to true if no api:* permissions exist)
 const canView = computed(() => !hasApiPermissions.value || permissionCodes.value.includes('api:view'))
+// Whether user can create APIs (defaults to true if no api:* permissions exist)
 const canCreate = computed(() => !hasApiPermissions.value || permissionCodes.value.includes('api:create'))
+// Whether user can update APIs (defaults to true if no api:* permissions exist)
 const canUpdate = computed(() => !hasApiPermissions.value || permissionCodes.value.includes('api:update'))
+// Whether user can delete APIs (defaults to true if no api:* permissions exist)
 const canDelete = computed(() => !hasApiPermissions.value || permissionCodes.value.includes('api:delete'))
 
+// Load the current user's permission codes from the API
 const loadMyPermissions = async () => {
   try {
     const res = await permissionApi.getMyPermissions()
@@ -48,6 +65,7 @@ const loadMyPermissions = async () => {
   }
 }
 
+// Fetch the paginated list of API entries from the API
 const loadApis = async () => {
   loading.value = true
   try {
@@ -74,11 +92,13 @@ const loadApis = async () => {
   }
 }
 
+// Trigger a search with current filters, resetting to page 1
 const handleSearch = () => {
   page.value = 1
   loadApis()
 }
 
+// Reset all filters and reload data from page 1
 const handleReset = () => {
   filters.value = {
     method: '',
@@ -89,17 +109,20 @@ const handleReset = () => {
   loadApis()
 }
 
+// Handle pagination page change and reload data
 const handlePageChange = (newPage: number) => {
   page.value = newPage
   loadApis()
 }
 
+// Handle page size change and reload data from page 1
 const handleSizeChange = (newSize: number) => {
   pageSize.value = newSize
   page.value = 1
   loadApis()
 }
 
+// Fetch the list of available permissions for dropdown selection
 const loadPermissions = async () => {
   try {
     // Use rbac picklist (not GET /api/permissions — that requires permission:view)
@@ -111,6 +134,7 @@ const loadPermissions = async () => {
   }
 }
 
+// Open the dialog for adding a new API entry
 const handleAdd = () => {
   isEdit.value = false
   formData.value = {
@@ -123,12 +147,14 @@ const handleAdd = () => {
   showDialog.value = true
 }
 
+// Open the dialog for editing an existing API entry
 const handleEdit = (row: any) => {
   isEdit.value = true
   formData.value = { ...row }
   showDialog.value = true
 }
 
+// Save (create or update) an API entry via the API
 const handleSave = async () => {
   try {
     const url = isEdit.value ? `/api/rbac/apis/${formData.value.id}` : '/api/rbac/apis'
@@ -155,6 +181,7 @@ const handleSave = async () => {
   }
 }
 
+// Delete an API entry after user confirmation
 const handleDelete = async (row: any) => {
   try {
     await ElMessageBox.confirm('Are you sure you want to delete this API?', 'Warning', {
@@ -183,12 +210,14 @@ const handleDelete = async (row: any) => {
   }
 }
 
+// Look up the permission name by its ID from the loaded permissions list
 const getPermissionName = (permissionId: number | null | undefined) => {
   if (permissionId == null) return '—'
   const perm = permissions.value.find((p) => p.id === permissionId)
   return perm ? perm.permission_name : `ID ${permissionId}`
 }
 
+// Lifecycle hook: load permissions, APIs, and permission list on mount
 onMounted(() => {
   loadMyPermissions()
   loadApis()

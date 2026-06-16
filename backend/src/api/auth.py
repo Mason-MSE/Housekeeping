@@ -22,6 +22,19 @@ def register(
     request: RegisterRequest,
     service: AuthService = Depends(get_service(AuthService)),
 ):
+    """Register a new user account.
+
+    Creates a new user with the provided credentials. If 2FA is enabled,
+    returns the TOTP secret and QR code URL. Automatically assigns the
+    specified role to the user.
+
+    Args:
+        request: Registration details (username, password, full_name, email, enable_2fa, role).
+        service: Injected AuthService instance.
+
+    Returns:
+        TwoFactorResponse indicating success or 2FA setup details.
+    """
     from database import get_db
     from model.user import UserModel
     from model.role import RoleModel
@@ -62,6 +75,20 @@ def verify_2fa(
     role: str = 'guest',
     service: AuthService = Depends(get_service(AuthService)),
 ):
+    """Verify a 2FA code during registration and complete the activation.
+
+    Validates the TOTP code provided by the user and activates 2FA on their
+    account if correct. Also ensures the user_role is created.
+
+    Args:
+        username: The username to verify 2FA for.
+        code: The TOTP code provided by the user.
+        role: Role to assign (defaults to 'guest').
+        service: Injected AuthService instance.
+
+    Returns:
+        dict with login tokens or error details.
+    """
     from database import get_db
     from model.user import UserModel
     from model.role import RoleModel
@@ -93,6 +120,18 @@ def login(
     data: OAuth2PasswordRequestForm = Depends(),
     service: AuthService = Depends(get_service(AuthService)),
 ):
+    """Authenticate a user with username and password (form-based).
+
+    Validates credentials and returns JWT access and refresh tokens
+    on success. Uses OAuth2PasswordRequestForm for form-encoded data.
+
+    Args:
+        data: OAuth2 form with username and password fields.
+        service: Injected AuthService instance.
+
+    Returns:
+        Token with access_token, refresh_token, and token_type.
+    """
     result = service.login(username=data.username, password=data.password)
 
     if "error" in result:
@@ -106,6 +145,17 @@ def login_json(
     request: LoginRequestJSON,
     service: AuthService = Depends(get_service(AuthService)),
 ):
+    """Authenticate a user with username and password (JSON-based).
+
+    Same as login but accepts JSON request body instead of form data.
+
+    Args:
+        request: JSON body with username and password fields.
+        service: Injected AuthService instance.
+
+    Returns:
+        Token with access_token, refresh_token, and token_type.
+    """
     result = service.login(username=request.username, password=request.password)
 
     if "error" in result:
@@ -119,6 +169,18 @@ def login_with_2fa(
     request: LoginWith2FARequest,
     service: AuthService = Depends(get_service(AuthService)),
 ):
+    """Authenticate a user who has 2FA enabled.
+
+    Validates username, password, and the TOTP code together.
+    Returns JWT tokens on success.
+
+    Args:
+        request: JSON body with username, password, and 2FA code.
+        service: Injected AuthService instance.
+
+    Returns:
+        dict with access_token, refresh_token, and token_type.
+    """
     result = service.login_with_2fa(
         username=request.username,
         password=request.password,

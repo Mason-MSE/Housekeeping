@@ -3,6 +3,7 @@ from datetime import datetime, date, time
 from typing import Optional
 
 class UserRoleSchema(BaseModel):
+    """Schema representing a user-role association."""
     user_id: Optional[int] = None
     role_id: Optional[int] = None
     create_time: Optional[datetime] = None
@@ -18,6 +19,7 @@ class UserRoleSchema(BaseModel):
         }
 
 class UserRoleCreateSchema(BaseModel):
+    """Schema for creating a new user-role association."""
     user_id: int
     role_id: int
     create_time: Optional[datetime] = None
@@ -28,6 +30,7 @@ class UserRoleCreateSchema(BaseModel):
         from_attributes = True
 
 class UserRoleUpdateSchema(BaseModel):
+    """Schema for updating an existing user-role association."""
     is_deleted: Optional[int] = None
 
     class Config:

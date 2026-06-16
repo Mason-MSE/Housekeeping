@@ -10,6 +10,7 @@ defineProps<{
   }
 }>()
 
+// The current year for the footer copyright notice
 const currentYear = new Date().getFullYear()
 </script>
 

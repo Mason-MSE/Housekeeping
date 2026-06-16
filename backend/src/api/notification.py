@@ -26,6 +26,22 @@ def get_notifications_paginated(
     current_user: UserModel = Depends(require_permission()),
     service: NotificationService = Depends(get_service(NotificationService))
 ):
+    """Get paginated notifications for the current user.
+
+    Supports filtering by notification type, read status, and title.
+
+    Args:
+        page: Page number (1-indexed).
+        page_size: Items per page (1-100).
+        type: Optional filter by notification type.
+        is_read: Optional filter by read status (0=unread, 1=read).
+        title: Optional filter by title keyword.
+        current_user: Authenticated user.
+        service: Injected NotificationService instance.
+
+    Returns:
+        dict with paginated notification items, total count, page, and page_size.
+    """
     result = service.get_notifications_paginated(
         current_user.id,
         page=page,
@@ -44,6 +60,16 @@ def get_notifications(
     current_user: UserModel = Depends(require_permission()),
     service: NotificationService = Depends(get_service(NotificationService))
 ):
+    """Get all notifications for the current user.
+
+    Args:
+        unread_only: If True, only return unread notifications.
+        current_user: Authenticated user.
+        service: Injected NotificationService instance.
+
+    Returns:
+        List of NotificationSchema objects.
+    """
     notifications = service.get_notifications(current_user.id, unread_only)
     return notifications
 
@@ -53,6 +79,15 @@ def get_unread_count(
     current_user: UserModel = Depends(require_permission()),
     service: NotificationService = Depends(get_service(NotificationService))
 ):
+    """Get the count of unread notifications for the current user.
+
+    Args:
+        current_user: Authenticated user.
+        service: Injected NotificationService instance.
+
+    Returns:
+        dict with unread count.
+    """
     return service.get_unread_count(current_user.id)
 
 
@@ -62,6 +97,16 @@ def mark_as_read(
     current_user: UserModel = Depends(require_permission()),
     service: NotificationService = Depends(get_service(NotificationService))
 ):
+    """Mark a single notification as read.
+
+    Args:
+        notification_id: The ID of the notification to mark as read.
+        current_user: Authenticated user.
+        service: Injected NotificationService instance.
+
+    Returns:
+        dict with success message or error detail.
+    """
     result = service.mark_as_read(current_user.id, notification_id)
 
     if "error" in result:
@@ -75,6 +120,15 @@ def mark_all_as_read(
     current_user: UserModel = Depends(require_permission()),
     service: NotificationService = Depends(get_service(NotificationService))
 ):
+    """Mark all notifications as read for the current user.
+
+    Args:
+        current_user: Authenticated user.
+        service: Injected NotificationService instance.
+
+    Returns:
+        dict with success message.
+    """
     return service.mark_all_as_read(current_user.id)
 
 
@@ -84,6 +138,16 @@ def delete_notification(
     current_user: UserModel = Depends(require_permission()),
     service: NotificationService = Depends(get_service(NotificationService))
 ):
+    """Delete a single notification by ID.
+
+    Args:
+        notification_id: The ID of the notification to delete.
+        current_user: Authenticated user.
+        service: Injected NotificationService instance.
+
+    Returns:
+        dict with success message or error detail.
+    """
     result = service.delete_notification(current_user.id, notification_id)
 
     if "error" in result:
@@ -97,6 +161,15 @@ def create_notification(
     notification_in: NotificationCreateSchema,
     service: NotificationService = Depends(get_service(NotificationService))
 ):
+    """Create a new notification for a user.
+
+    Args:
+        notification_in: Notification data including user_id, title, content, type, and optional link_url.
+        service: Injected NotificationService instance.
+
+    Returns:
+        The created notification record.
+    """
     return service.create_notification(
         user_id=notification_in.user_id,
         title=notification_in.title,

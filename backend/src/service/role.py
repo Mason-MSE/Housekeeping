@@ -17,17 +17,21 @@ class role(ServiceBase[RoleModel, RoleCreateSchema, RoleUpdateSchema]):
     """Role service: CRUD with unique role_code and safe soft-delete."""
 
     def __init__(self, db: Session):
+        """Initialize the role service with DB session and CRUD instance."""
         crud_instance = super().get_crud(crud_cls=role_crud, model_cls=RoleModel)
         super().__init__(crud=crud_instance, db=db)
 
     def get_all(self):
+        """Retrieve all non-deleted roles."""
         return self.crud.get_all(self.db)
 
     def get(self, id: int) -> Optional[RoleModel]:
+        """Retrieve a single role by its primary key."""
         return self.crud.get(self.db, id)
 
     @staticmethod
     def _slug_code(name: str) -> str:
+        """Convert a role name into a slug-style code."""
         slug = re.sub(r'[^a-zA-Z0-9]+', '_', name.strip().lower()).strip('_')
         return slug or 'role'
 
@@ -42,6 +46,7 @@ class role(ServiceBase[RoleModel, RoleCreateSchema, RoleUpdateSchema]):
         return query.first() is None
 
     def create(self, item_in: RoleCreateSchema) -> RoleModel:
+        """Create a new role with a unique role_code."""
         data = item_in.model_dump(exclude_unset=True)
         name = (data.get('role_name') or '').strip()
         if not name:
@@ -66,6 +71,7 @@ class role(ServiceBase[RoleModel, RoleCreateSchema, RoleUpdateSchema]):
         return obj
 
     def update(self, db_obj: RoleModel, item_in: RoleUpdateSchema) -> RoleModel:
+        """Update an existing role with the provided fields."""
         data = item_in.model_dump(exclude_unset=True)
         if 'role_name' in data and data['role_name'] is not None:
             nm = str(data['role_name']).strip()

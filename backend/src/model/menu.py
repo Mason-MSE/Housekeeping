@@ -7,6 +7,7 @@ from model.Base import Base
 
 
 class MenuModel(Base):
+    """Menu item (navigation tree node) mapped to the 'menu' table."""
     __tablename__ = 'menu'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

@@ -49,15 +49,18 @@ class ComplaintService:
     """Create and resolve complaints tied to service orders."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize the complaint service with a database session."""
         self.db = db
 
     def _get_order(self, order_id: int) -> Optional[ServiceOrderModel]:
+        """Fetch a non-deleted service order by its ID."""
         return self.db.query(ServiceOrderModel).filter(
             ServiceOrderModel.order_id == order_id,
             ServiceOrderModel.is_deleted == 0,
         ).first()
 
     def _paid_amount(self, order_id: int, guest_id: int) -> Decimal:
+        """Return the total completed payment amount for an order by a guest."""
         row = (
             self.db.query(TransactionModel)
             .filter(
@@ -75,6 +78,7 @@ class ComplaintService:
         return Decimal(str(row.amount))
 
     def _cleaner_income_total(self, order_id: int, cleaner_id: int) -> Decimal:
+        """Return the total completed income transactions for a cleaner on an order."""
         rows = (
             self.db.query(TransactionModel)
             .filter(
@@ -95,6 +99,7 @@ class ComplaintService:
     def _pending_payment_row(
         self, order_id: int, guest_id: int
     ) -> Optional[TransactionModel]:
+        """Fetch the pending payment transaction for an order by a guest."""
         return (
             self.db.query(TransactionModel)
             .filter(
@@ -108,6 +113,7 @@ class ComplaintService:
         )
 
     def _validate_eligibility(self, order: ServiceOrderModel, guest_id: int) -> None:
+        """Raise HTTPException if the order is not eligible for a complaint."""
         if order.guest_id != guest_id:
             raise HTTPException(status_code=403, detail='This order does not belong to you')
         if order.actual_complete is None:
@@ -124,6 +130,7 @@ class ComplaintService:
             raise HTTPException(status_code=400, detail='Cancelled orders cannot be disputed')
 
     def _existing_complaint_for_order(self, order_id: int) -> Optional[ComplaintModel]:
+        """Return the first non-deleted complaint for the given order, if any."""
         return (
             self.db.query(ComplaintModel)
             .filter(
@@ -224,6 +231,7 @@ class ComplaintService:
 
     def list_my_complaints(self, guest_id: int) -> List[ComplaintOutSchema]:
         """List complaints filed by the guest."""
+        """List complaints filed by the guest."""
         try:
             rows = (
                 self.db.query(ComplaintModel)
@@ -259,6 +267,7 @@ class ComplaintService:
         return [self._to_out(r, include_evidence=True) for r in rows], total
 
     def get_one(self, complaint_id: int) -> ComplaintAdminDetailOutSchema:
+        """Fetch a single complaint with full detail including booking info."""
         row = (
             self.db.query(ComplaintModel)
             .filter(
@@ -409,6 +418,7 @@ class ComplaintService:
         refund_amt: Decimal,
     ) -> None:
         """Credit guest wallet and debit cleaner by the same refund amount (<= cleaner income)."""
+
         if not order.assigned_staff_id:
             raise HTTPException(status_code=400, detail='Order has no assigned cleaner to adjust')
         cleaner_income = self._cleaner_income_total(order.order_id, order.assigned_staff_id)
@@ -489,12 +499,14 @@ class ComplaintService:
 
     def _sync_pending_payment_amount(self, order: ServiceOrderModel, guest_id: int) -> None:
         """Set pending payment row to match payable after complaint waiver (flush complaint first)."""
+        """Set pending payment row to match payable after complaint waiver (flush complaint first)."""
         pending = self._pending_payment_row(order.order_id, guest_id)
         new_due = resolve_guest_order_pay_amount(self.db, order, guest_id)
         if pending is not None:
             pending.amount = float(new_due)
 
     def _notify_resolution(self, complaint: ComplaintModel, order: ServiceOrderModel, body: str) -> None:
+        """Send an in-app notification to the guest about the complaint resolution."""
         note = (complaint.admin_note or '').strip()
         content = body if not note else f'{body} Note: {note[:400]}'
         notify_user(
@@ -507,6 +519,7 @@ class ComplaintService:
         )
 
     def _to_out(self, row: ComplaintModel, include_evidence: bool) -> ComplaintOutSchema:
+        """Convert a ComplaintModel into a ComplaintOutSchema with optional evidence."""
         evidence_list: List[ComplaintEvidenceSchema] = []
         if include_evidence:
             ev_rows = (

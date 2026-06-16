@@ -10,6 +10,7 @@ from model.Base import Base
 
 
 class WalletModel(Base):
+    """User wallet (balance/frozen balance) mapped to the 'wallet' table."""
     __tablename__ = 'wallet'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -21,6 +22,7 @@ class WalletModel(Base):
 
 
 class TransactionModel(Base):
+    """Wallet transaction ledger entry mapped to the 'transaction' table."""
     __tablename__ = 'transaction'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

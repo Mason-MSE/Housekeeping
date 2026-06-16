@@ -4,16 +4,24 @@ import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { permissionApi } from '@/api'
 
+// Router instance
 const router = useRouter()
+// Route instance
 const route = useRoute()
+// User store instance
 const userStore = useUserStore()
 
+// Computed current user info
 const userInfo = computed(() => userStore.userInfo)
+// Computed whether the user is logged in
 const isLoggedIn = computed(() => !!userInfo.value)
 
+// List of menu items for the sidebar
 const menuItems = ref([])
+// Loading state for menu fetching
 const loading = ref(false)
 
+// Fetch menu items from the API based on user permissions
 const fetchMenus = async () => {
   if (!isLoggedIn.value) {
     menuItems.value = []
@@ -34,18 +42,22 @@ const fetchMenus = async () => {
   }
 }
 
+// Lifecycle hook: fetch menus on mount
 onMounted(() => {
   fetchMenus()
 })
 
+// Watcher: re-fetch menus when user info changes (login/logout)
 watch(() => userInfo.value, () => {
   fetchMenus()
 })
 
+// Navigate to a given route path
 const go = (path) => {
   router.push(path)
 }
 
+// Check if a given path matches the current route
 const isActive = (path) => {
   return route.path === path
 }

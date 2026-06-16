@@ -9,10 +9,15 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
+// Loading state for login/register actions
 const loading = ref(false)
+// Whether the form is in register mode or login mode
 const isRegisterMode = ref(false)
+// Whether to show the 2FA verification dialog
 const show2FA = ref(false)
+// QR code URL for 2FA setup
 const qrCode = ref('')
+// User-entered 2FA verification code
 const verifyCode = ref('')
 
 onMounted(() => {
@@ -20,15 +25,20 @@ onMounted(() => {
     isRegisterMode.value = true
   }
 })
+// Temporary token for 2FA verification flow
 const tempToken = ref('')
+// Temporary username stored during 2FA registration flow
 const tempUsername = ref('')
+// Temporary password stored during 2FA registration flow
 const tempPassword = ref('')
 
+// Login form data model
 const loginForm = ref({
   username: '',
   password: ''
 })
 
+// Registration form data model
 const registerForm = ref({
   username: '',
   password: '',
@@ -38,6 +48,7 @@ const registerForm = ref({
   role: 'guest'
 })
 
+// Handle login form submission
 const handleLogin = async () => {
   if (!loginForm.value.username || !loginForm.value.password) {
     ElMessage.warning('Please enter username and password')
@@ -77,6 +88,7 @@ const handleLogin = async () => {
   }
 }
 
+// Handle 2FA code verification during login
 const handleVerify2FA = async () => {
   if (!verifyCode.value) {
     ElMessage.warning('Please enter verification code')
@@ -121,6 +133,7 @@ const handleVerify2FA = async () => {
   }
 }
 
+// Handle registration form submission
 const handleRegister = async () => {
   if (!registerForm.value.username || !registerForm.value.password) {
     ElMessage.warning('Please enter username and password')
@@ -148,6 +161,7 @@ const handleRegister = async () => {
   }
 }
 
+// Handle 2FA code verification during registration
 const handleVerifyRegister = async () => {
   if (!verifyCode.value) {
     ElMessage.warning('Please enter verification code')
@@ -203,6 +217,7 @@ const handleVerifyRegister = async () => {
   }
 }
 
+// Toggle between login and register modes, resetting all form state
 const toggleMode = () => {
   isRegisterMode.value = !isRegisterMode.value
   show2FA.value = false

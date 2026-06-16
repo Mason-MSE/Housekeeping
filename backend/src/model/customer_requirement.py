@@ -11,6 +11,7 @@ from model.Base import Base
 
 
 class CustomerRequirementModel(Base):
+    """Customer cleaning/service requirement mapped to the 'customer_requirement' table."""
     __tablename__ = 'customer_requirement'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

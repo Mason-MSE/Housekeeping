@@ -10,6 +10,7 @@ from model.Base import Base
 
 
 class BookingModel(Base):
+    """Car rental booking record mapped to the 'booking' table."""
     __tablename__ = 'booking'
 
     booking_id = mapped_column(Integer, primary_key=True)

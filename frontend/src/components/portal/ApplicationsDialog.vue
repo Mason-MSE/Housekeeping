@@ -23,22 +23,27 @@ const emit = defineEmits<{
   (e: 'submit'): void
 }>()
 
+// Reactive copy of the form data
 const formData = ref({ ...props.form })
 
+// Resets the form data when the dialog becomes visible
 watch(() => props.visible, (val) => {
   if (val) {
     formData.value = { ...props.form }
   }
 })
 
+// Watches for external form prop changes and syncs the local form data
 watch(() => props.form, (val) => {
   formData.value = { ...val }
 }, { deep: true })
 
+// Emits the form data when the user submits their application
 const handleSubmit = () => {
   emit('submit', formData.value)
 }
 
+// Closes the dialog by emitting the update:visible event
 const closeDialog = () => {
   emit('update:visible', false)
 }

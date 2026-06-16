@@ -4,17 +4,27 @@ import { portalApi } from '@/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
+// User store instance
 const userStore = useUserStore()
+// Loading state for data fetching
 const loading = ref(false)
 
+// List of requirements
 const requirements = ref<any[]>([])
+// List of available cleaners
 const cleaners = ref<any[]>([])
+// Total count of requirements
 const total = ref(0)
+// Pagination page number
 const page = ref(1)
+// Pagination page size
 const pageSize = ref(20)
 
+// Dialog visibility for assign cleaner
 const showAssignDialog = ref(false)
+// Currently selected requirement for assignment
 const selectedRequirement = ref<any>(null)
+// Selected cleaner ID for assignment
 const selectedCleanerId = ref<number | null>(null)
 
 const filters = ref({
@@ -38,11 +48,13 @@ const statusOptions = [
 const propertyTypes = ['Apartment', 'House', 'Condo', 'Townhouse', 'Villa', 'Studio']
 const serviceTypes = ['Standard Cleaning', 'Deep Cleaning', 'Move-in Cleaning', 'Move-out Cleaning', 'Post-Construction']
 
+// Get display username for a cleaner
 const cleanerUsername = (c: any) => {
   const u = (c?.username || '').trim()
   return u || `#${c?.id ?? '?'}`
 }
 
+// Load paginated requirements from the API with filters
 const loadRequirements = async () => {
   loading.value = true
   try {
@@ -66,6 +78,7 @@ const loadRequirements = async () => {
   }
 }
 
+// Load available cleaners from the API
 const loadCleaners = async () => {
   try {
     const res = await portalApi.getAdminCleaners()
@@ -75,11 +88,13 @@ const loadCleaners = async () => {
   }
 }
 
+// Apply filters and reload requirements
 const handleSearch = () => {
   page.value = 1
   loadRequirements()
 }
 
+// Reset filters to defaults and reload
 const handleReset = () => {
   filters.value = {
     guest_name: '',
@@ -94,6 +109,7 @@ const handleReset = () => {
   loadRequirements()
 }
 
+// Open the assign cleaner dialog for a requirement
 const handleAssign = (row: any) => {
   if (row.can_reassign_cleaner === false) {
     ElMessage.warning(
@@ -106,6 +122,7 @@ const handleAssign = (row: any) => {
   showAssignDialog.value = true
 }
 
+// Confirm assignment of a cleaner to the selected requirement
 const confirmAssign = async () => {
   if (!selectedRequirement.value || !selectedCleanerId.value) {
     ElMessage.warning('Please select a cleaner')
@@ -122,6 +139,7 @@ const confirmAssign = async () => {
   }
 }
 
+// Delete a requirement after confirmation
 const handleDelete = async (row: any) => {
   try {
     await ElMessageBox.confirm('Are you sure you want to delete this requirement?', 'Warning', {
@@ -139,16 +157,19 @@ const handleDelete = async (row: any) => {
   }
 }
 
+// Get the display label for a given status code
 const getStatusLabel = (status: number) => {
   const option = statusOptions.find(s => s.value === status)
   return option ? option.label : 'Unknown'
 }
 
+// Get the Element tag type for a given status code
 const getStatusType = (status: number) => {
   const types = ['info', 'success', 'warning', 'success', 'danger']
   return types[status] || 'info'
 }
 
+// Lifecycle hook: load requirements and cleaners on mount
 onMounted(() => {
   loadRequirements()
   loadCleaners()

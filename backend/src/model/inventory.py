@@ -7,6 +7,7 @@ from model.Base import Base
 
 
 class InventoryItemModel(Base):
+    """Inventory item/consumable record mapped to the 'inventory_item' table."""
     __tablename__ = 'inventory_item'
 
     id = mapped_column(Integer, primary_key=True)

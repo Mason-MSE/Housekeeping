@@ -8,6 +8,7 @@ const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void
 }>()
 
+// Closes the dialog by emitting the update:visible event
 const closeDialog = () => {
   emit('update:visible', false)
 }

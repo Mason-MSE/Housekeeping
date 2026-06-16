@@ -10,6 +10,7 @@ class ServiceTypeService:
     """Maintain service_type rows."""
 
     def __init__(self, db: Session) -> None:
+        """Initialize the service type service with a database session."""
         self.db = db
 
     def get_all(self):

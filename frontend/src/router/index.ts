@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+// Define all application routes with lazy-loaded components and metadata
 const routes = [
   {
     path: '/',
@@ -191,11 +192,13 @@ const routes = [
   }
 ]
 
+// Create the router instance with HTML5 history mode
 const router = createRouter({
   history: createWebHistory(),
   routes
 })
 
+// Navigation guard: redirect logged-in users away from /login, and require auth on protected routes
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
   if (to.path === '/login' && token) {

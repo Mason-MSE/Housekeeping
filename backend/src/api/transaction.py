@@ -24,6 +24,26 @@ def create_payment(
     current_user: UserModel = Depends(require_permission()),
     db: Session = Depends(get_db)
 ):
+    """Process a payment for a service order using wallet balance.
+
+    Validates the order status, checks for duplicate payments, deducts the
+    amount from the customer's wallet, credits the assigned cleaner's wallet,
+    creates transaction records, and sends in-app notifications.
+
+    Args:
+        payment_data: Payment details including order_id and payment_method.
+        current_user: Authenticated user (must be the order's guest).
+        db: Database session.
+
+    Returns:
+        TransactionSchema for the completed payment.
+
+    Raises:
+        HTTPException 400: If order is not payable, duplicate payment, or insufficient balance.
+        HTTPException 403: If user is not the order owner.
+        HTTPException 404: If order is not found.
+        HTTPException 500: If wallet creation fails.
+    """
     try:
         order = db.query(ServiceOrderModel).filter(
             ServiceOrderModel.order_id == payment_data.order_id,
@@ -167,6 +187,19 @@ def get_transaction_by_order(
     current_user: UserModel = Depends(require_permission()),
     db: Session = Depends(get_db)
 ):
+    """Get the payment transaction for a specific order.
+
+    Args:
+        order_id: The service order ID.
+        current_user: Authenticated user.
+        db: Database session.
+
+    Returns:
+        TransactionSchema for the order's payment.
+
+    Raises:
+        HTTPException 404: If no transaction is found.
+    """
     transaction = db.query(TransactionModel).filter(
         TransactionModel.order_id == order_id,
         TransactionModel.user_id == current_user.id,
@@ -183,6 +216,24 @@ def submit_review(
     current_user: UserModel = Depends(require_permission()),
     db: Session = Depends(get_db)
 ):
+    """Submit a review (rating and comment) for a completed order.
+
+    Validates the rating is between 0.5 and 5 in half-star increments,
+    updates the order status to reviewed, and notifies the assigned cleaner.
+
+    Args:
+        review_data: Review details including order_id, rating, and comment.
+        current_user: Authenticated user (must be the order's guest).
+        db: Database session.
+
+    Returns:
+        dict with success status and message.
+
+    Raises:
+        HTTPException 400: If order is not in reviewable status or rating is invalid.
+        HTTPException 403: If user is not the order owner.
+        HTTPException 404: If order is not found.
+    """
     order = db.query(ServiceOrderModel).filter(
         ServiceOrderModel.order_id == review_data.order_id,
         ServiceOrderModel.is_deleted == 0

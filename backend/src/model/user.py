@@ -11,6 +11,7 @@ from model.Base import Base
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class UserModel(Base):
+    """System user (guest, cleaner, admin, etc.) mapped to the 'user' table."""
     __tablename__ = 'user'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -41,7 +42,9 @@ class UserModel(Base):
     }
 
     def set_password(self, raw_password: str):
+        """Hash and set the user's password using bcrypt."""
         self.password = pwd_context.hash(raw_password)
 
     def verify_password(self, raw_password: str) -> bool:
+        """Verify a raw password against the stored bcrypt hash."""
         return pwd_context.verify(raw_password, self.password)

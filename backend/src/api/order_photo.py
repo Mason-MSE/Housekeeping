@@ -19,6 +19,16 @@ def get_photos_by_order(
     current_user: UserModel = Depends(require_permission()),
     service: OrderPhotoService = Depends(get_service(OrderPhotoService))
 ):
+    """Get all photos associated with a specific service order.
+
+    Args:
+        order_id: The ID of the service order.
+        current_user: Authenticated user.
+        service: Injected OrderPhotoService instance.
+
+    Returns:
+        List of OrderPhotoSchema objects for the given order.
+    """
     return service.get_by_order(order_id)
 
 
@@ -28,6 +38,16 @@ def create_photo(
     current_user: UserModel = Depends(require_permission()),
     service: OrderPhotoService = Depends(get_service(OrderPhotoService))
 ):
+    """Upload a new photo for a service order.
+
+    Args:
+        photo_in: Photo data including order_id, photo_type, and photo_data (base64).
+        current_user: Authenticated user.
+        service: Injected OrderPhotoService instance.
+
+    Returns:
+        The created OrderPhotoSchema object.
+    """
     return service.create(photo_in, current_user.id)
 
 
@@ -37,6 +57,16 @@ def reorder_photos(
     current_user: UserModel = Depends(require_permission()),
     service: OrderPhotoService = Depends(get_service(OrderPhotoService))
 ):
+    """Reorder photos for a service order by providing an ordered list of photo IDs.
+
+    Args:
+        reorder_data: Schema containing the ordered list of photo_ids.
+        current_user: Authenticated user.
+        service: Injected OrderPhotoService instance.
+
+    Returns:
+        dict indicating success.
+    """
     return service.reorder_photos(list(reorder_data.photo_ids))
 
 
@@ -46,6 +76,16 @@ def delete_photo(
     current_user: UserModel = Depends(require_permission()),
     service: OrderPhotoService = Depends(get_service(OrderPhotoService))
 ):
+    """Delete a photo by its ID.
+
+    Args:
+        photo_id: The ID of the photo to delete.
+        current_user: Authenticated user.
+        service: Injected OrderPhotoService instance.
+
+    Returns:
+        dict with success status.
+    """
     result = service.delete(photo_id)
     if not result:
         raise HTTPException(status_code=404, detail='Photo not found')

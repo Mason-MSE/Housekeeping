@@ -4,29 +4,41 @@ import { portalApi } from '@/api'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
+// User store for role/permission information
 const userStore = useUserStore()
+// Loading state for the data table
 const loading = ref(false)
 
+// List of cleaner requirements
 const requirements = ref<any[]>([])
+// Total number of requirements matching the query
 const total = ref(0)
+// Current pagination page
 const page = ref(1)
+// Number of items per page
 const pageSize = ref(20)
 
+// Filter criteria for the requirements list
 const filters = ref({
   status: null as number | null
 })
 
+// Array of role names for the current user
 const userRoles = computed(() => userStore.userInfo?.roles || [userStore.userInfo?.role || 'guest'])
+// Whether the current user has a cleaner/staff role
 const isCleaner = computed(() => userRoles.value.some(r => ['cleaner', 'staff', 'employee'].includes(r.toLowerCase())))
 
+// The current cleaner's user ID
 const cleanerId = computed(() => userStore.userInfo?.id || userStore.userInfo?.userId)
 
+// Options for application status filter
 const statusOptions = [
   { value: 0, label: 'Pending' },
   { value: 1, label: 'Assigned/Accepted' },
   { value: 2, label: 'Rejected' }
 ]
 
+// Fetch the cleaner's requirements from the API
 const loadRequirements = async () => {
   if (!isCleaner.value || !cleanerId.value) {
     ElMessage.warning('Only cleaners can access this page')
@@ -52,11 +64,13 @@ const loadRequirements = async () => {
   }
 }
 
+// Trigger a search with current filters, resetting to page 1
 const handleSearch = () => {
   page.value = 1
   loadRequirements()
 }
 
+// Reset all filters and reload data from page 1
 const handleReset = () => {
   filters.value = {
     status: null
@@ -65,11 +79,13 @@ const handleReset = () => {
   loadRequirements()
 }
 
+// Return the Element Plus tag type for a given application status
 const getStatusType = (status: number) => {
   const types = ['warning', 'success', 'danger']
   return types[status] || 'info'
 }
 
+// Lifecycle hook: load requirements on mount if user is a cleaner
 onMounted(() => {
   if (isCleaner.value) {
     loadRequirements()

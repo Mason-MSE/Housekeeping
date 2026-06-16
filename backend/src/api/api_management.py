@@ -40,6 +40,7 @@ def list_permission_options(
 
 
 class ApiSchema(BaseModel):
+    """Schema for API create/update request payload."""
     id: Optional[int] = None
     api_path: Optional[str] = None
     api_method: Optional[str] = None

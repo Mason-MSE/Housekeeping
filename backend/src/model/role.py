@@ -7,6 +7,7 @@ from model.Base import Base
 
 
 class RoleModel(Base):
+    """User role definition mapped to the 'role' table."""
     __tablename__ = 'role'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

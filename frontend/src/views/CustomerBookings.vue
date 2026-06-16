@@ -4,26 +4,40 @@ import { portalApi, transactionApi, reviewApi } from '@/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
+// User store for role/permission information
 const userStore = useUserStore()
+// Loading state for the data table
 const loading = ref(false)
 
+// List of customer bookings
 const bookings = ref<any[]>([])
+// Total number of bookings
 const total = ref(0)
+// Current pagination page
 const page = ref(1)
+// Number of items per page
 const pageSize = ref(20)
 
+// The current customer's user ID
 const userId = computed(() => userStore.userInfo?.id || userStore.userInfo?.userId)
+// Array of role names for the current user
 const userRoles = computed(() => userStore.userInfo?.roles || [userStore.userInfo?.role || 'guest'])
+// Whether the current user has a guest/customer role
 const isGuest = computed(() => userRoles.value.some(r => ['guest', 'customer', 'user'].includes(r.toLowerCase())))
 
+// Dialog visibility for order detail view
 const detailDialogVisible = ref(false)
+// Currently selected order for detail view
 const selectedOrder = ref<any>(null)
+// Dialog visibility for review form
 const reviewDialogVisible = ref(false)
+// Form data for submitting a review
 const reviewForm = ref({
   rating: 0,
   comment: ''
 })
 
+// Maps order status numbers to display labels and tag types
 const statusMap: Record<number, { label: string; type: string }> = {
   0: { label: 'Pending', type: 'info' },
   1: { label: 'Assigned', type: 'warning' },
@@ -36,6 +50,7 @@ const statusMap: Record<number, { label: string; type: string }> = {
   8: { label: 'Cancelled', type: 'info' }
 }
 
+// Fetch the list of customer bookings from the API
 const loadData = async () => {
   if (!userId.value) return
   
@@ -52,21 +67,25 @@ const loadData = async () => {
   }
 }
 
+// Handle pagination page change and reload data
 const handlePageChange = (newPage: number) => {
   page.value = newPage
   loadData()
 }
 
+// Handle page size change and reload data from page 1
 const handleSizeChange = (newSize: number) => {
   pageSize.value = newSize
   page.value = 1
   loadData()
 }
 
+// Return the label and tag type for a given order status number
 const getStatusInfo = (status: number) => {
   return statusMap[status] || { label: 'Unknown', type: 'info' }
 }
 
+// Fetch and display the full detail of a booking order
 const handleViewDetail = async (row: any) => {
   try {
     const res = await portalApi.getCustomerBookingDetail(row.id, userId.value)
@@ -78,21 +97,25 @@ const handleViewDetail = async (row: any) => {
   detailDialogVisible.value = true
 }
 
+// Format the payment amount as a string with 2 decimal places
 const formatPayAmount = (order: any) => {
   const n = Number(order?.payment_amount)
   return Number.isFinite(n) ? n.toFixed(2) : '100.00'
 }
 
+// Open the review dialog and reset the form
 const openReviewDialog = () => {
   reviewForm.value = { rating: 0, comment: '' }
   reviewDialogVisible.value = true
 }
 
+// Open the order detail and then the review dialog for a booking
 const handleOpenReview = async (row: any) => {
   await handleViewDetail(row)
   openReviewDialog()
 }
 
+// Process payment for an order after user confirmation
 const handlePayment = async (order: any) => {
   try {
     await ElMessageBox.confirm(
@@ -115,6 +138,7 @@ const handlePayment = async (order: any) => {
   }
 }
 
+// Submit a review for the selected order to the API
 const handleSubmitReview = async () => {
   if (!selectedOrder.value) return
   const r = Number(reviewForm.value.rating)
@@ -134,9 +158,12 @@ const handleSubmitReview = async () => {
   }
 }
 
+// Count of bookings with pending payment status
 const pendingCount = computed(() => bookings.value.filter(b => b.status === 5).length)
+// Count of completed bookings
 const completedCount = computed(() => bookings.value.filter(b => b.status === 7).length)
 
+// Lifecycle hook: load bookings on mount if user is a guest and has a user ID
 onMounted(() => {
   if (isGuest.value && userId.value) {
     loadData()

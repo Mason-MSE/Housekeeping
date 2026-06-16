@@ -101,24 +101,30 @@ const emit = defineEmits([
   'current-change'
 ])
 
+// Returns the table data from props
 const tableData = computed(() => props.data)
 
+// Emits a refresh event to reload the table data
 function handleRefresh() {
   emit('refresh')
 }
 
+// Emits the selection change event with the selected rows
 function handleSelectionChange(selection) {
   emit('selection-change', selection)
 }
 
+// Emits the sort change event with the sort parameters
 function handleSortChange(sort) {
   emit('sort-change', sort)
 }
 
+// Emits the page size change event
 function handleSizeChange(size) {
   emit('page-size-change', size)
 }
 
+// Emits the current page change event
 function handleCurrentChange(page) {
   emit('current-change', page)
 }

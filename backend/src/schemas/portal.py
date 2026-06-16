@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class CleanerSchema(BaseModel):
+    """Schema representing a cleaner for portal display."""
     id: int
     username: str
     full_name: str
@@ -18,6 +19,7 @@ class CleanerSchema(BaseModel):
 
 
 class CleanerDetailSchema(BaseModel):
+    """Schema representing detailed cleaner information with reviews."""
     id: int
     username: str
     full_name: str
@@ -32,6 +34,7 @@ class CleanerDetailSchema(BaseModel):
 
 
 class PortalServiceTypeSchema(BaseModel):
+    """Schema representing a service type for portal display."""
     id: int
     type_name: str
     description: Optional[str] = None
@@ -43,6 +46,7 @@ class PortalServiceTypeSchema(BaseModel):
 
 
 class PortalRoomSchema(BaseModel):
+    """Schema representing a room for portal display."""
     room_id: int
     room_number: str
     room_type: str
@@ -131,6 +135,7 @@ class PortalOrderCreateSchema(BaseModel):
     @field_validator('service_type_id', 'priority', mode='before')
     @classmethod
     def coerce_required_ints(cls, value: Any) -> Any:
+        """Coerce string or float values to integers for required integer fields."""
         if isinstance(value, bool):
             return value
         if isinstance(value, str) and value.strip().isdigit():
@@ -142,6 +147,7 @@ class PortalOrderCreateSchema(BaseModel):
     @field_validator('scheduled_duration_hours', mode='before')
     @classmethod
     def coerce_duration_hours(cls, value: Any) -> Any:
+        """Coerce string values to float for the scheduled duration hours field."""
         if isinstance(value, str):
             s = value.strip()
             if not s:
@@ -154,6 +160,7 @@ class PortalOrderCreateSchema(BaseModel):
 
 
 class PortalOrderSchema(BaseModel):
+    """Schema representing a portal order."""
     order_id: int
     order_no: str
     status: int
@@ -172,6 +179,7 @@ class PortalOrderSchema(BaseModel):
 
 
 class ServiceTypeDetailSchema(BaseModel):
+    """Schema representing detailed service type information."""
     type_id: int
     type_name: str
     description: Optional[str] = None
@@ -186,6 +194,7 @@ class ServiceTypeDetailSchema(BaseModel):
 
 
 class CompanyInfoSchema(BaseModel):
+    """Schema representing company information for the portal."""
     about_us: str = "CleanPro is a professional hotel cleaning service platform"
     phone: str = "400-888-8888"
     email: str = "service@cleanpro.com"
@@ -199,6 +208,7 @@ class CompanyInfoSchema(BaseModel):
 
 
 class ReviewSchema(BaseModel):
+    """Schema representing a customer review for the portal."""
     id: int
     guest_name: str
     rating: float
@@ -211,7 +221,7 @@ class ReviewSchema(BaseModel):
 
 
 class CustomerRequirementCustomerCreateSchema(BaseModel):
-    """Logged-in customer creates a requirement from the management module."""
+    """Schema for a logged-in customer creating a requirement from the management module."""
 
     guest_name: str
     guest_phone: str
@@ -233,6 +243,7 @@ class CustomerRequirementCustomerCreateSchema(BaseModel):
 
 
 class CustomerRequirementSchema(BaseModel):
+    """Schema representing a customer requirement."""
     id: int
     user_id: Optional[int] = None
     guest_name: str
@@ -261,6 +272,7 @@ class CustomerRequirementSchema(BaseModel):
 
 
 class CleanerApplicationCreateSchema(BaseModel):
+    """Schema for a cleaner applying for a customer requirement."""
     requirement_id: int
     cleaner_id: int
     cleaner_name: str
@@ -269,6 +281,7 @@ class CleanerApplicationCreateSchema(BaseModel):
 
 
 class CleanerApplicationSchema(BaseModel):
+    """Schema representing a cleaner application for a requirement."""
     id: int
     requirement_id: int
     cleaner_id: int
@@ -286,6 +299,7 @@ class CleanerApplicationSchema(BaseModel):
 
 
 class CleanerTaskSchema(BaseModel):
+    """Schema representing a task assigned to a cleaner."""
     id: int
     task_type: str
     task_id: int
@@ -302,6 +316,7 @@ class CleanerTaskSchema(BaseModel):
 
 
 class AdminRequirementSchema(BaseModel):
+    """Schema representing a customer requirement for admin management."""
     id: int
     user_id: int
     guest_name: str
@@ -335,6 +350,7 @@ class AdminRequirementSchema(BaseModel):
 
 
 class AdminCleanerSchema(BaseModel):
+    """Schema representing a cleaner with workload statistics for admin."""
     id: int
     username: str
     full_name: str

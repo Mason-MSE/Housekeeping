@@ -9,6 +9,7 @@ from model.Base import Base
 
 
 class ServiceDetailModel(Base):
+    """Service type detail/description mapped to the 'service_detail' table."""
     __tablename__ = 'service_detail'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -29,6 +30,7 @@ class ServiceDetailModel(Base):
 
 
 class ServiceStepModel(Base):
+    """Step-by-step instructions for a service type, mapped to the 'service_step' table."""
     __tablename__ = 'service_step'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

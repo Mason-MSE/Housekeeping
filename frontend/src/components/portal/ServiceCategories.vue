@@ -11,6 +11,7 @@ const emit = defineEmits<{
   (e: 'category-click', service: any): void
 }>()
 
+// Mapping of service type IDs to their display images
 const serviceImages: Record<number, string> = {
   1: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600&q=80',
   2: 'https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=600&q=80',
@@ -18,6 +19,7 @@ const serviceImages: Record<number, string> = {
   4: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80',
 }
 
+// Mapping of service type IDs to their accent colors
 const serviceColors: Record<number, string> = {
   1: '#00a885',
   2: '#e74c3c',
@@ -25,6 +27,7 @@ const serviceColors: Record<number, string> = {
   4: '#9b59b6',
 }
 
+// Filters services by the search keyword (by name or description)
 const filteredServices = computed(() => {
   if (!props.searchKeyword) return props.services
   const keyword = props.searchKeyword.toLowerCase()
@@ -34,16 +37,19 @@ const filteredServices = computed(() => {
   )
 })
 
+// Emits the selected service when a category card is clicked
 const handleCategoryClick = (service: any) => {
   emit('category-click', service)
 }
 
+// Determines whether a promo price should be displayed (market price > current price)
 const showPromo = (service: any) => {
   const m = Number(service?.market_price)
   const p = Number(service?.price)
   return Number.isFinite(m) && Number.isFinite(p) && m > p
 }
 
+// Formats a value as a fixed two-decimal price string
 const fmt = (v: unknown) => {
   const n = Number(v)
   return Number.isFinite(n) ? n.toFixed(2) : '0.00'

@@ -20,7 +20,15 @@ router = APIRouter(prefix='/api/service-order', tags=['service-order'])
 
 
 def get_user_roles(user_id: int, db: Session):
-    """Helper function to get user roles"""
+    """Retrieve role names for a given user.
+
+    Args:
+        user_id: The user ID.
+        db: Database session.
+
+    Returns:
+        List of role name strings (e.g. ['admin', 'cleaner']).
+    """
     from model.role import RoleModel
     from model.user_role import UserRoleModel
     roles = db.query(RoleModel.role_name).join(
@@ -35,6 +43,19 @@ def read_all(
     service: ServiceOrderService = Depends(get_service(ServiceOrderService)),
     db: Session = Depends(get_db)
 ):
+    """Retrieve all service orders based on the current user's role.
+
+    Admins/managers see all orders, cleaners see their assigned orders,
+    and guests see their own orders.
+
+    Args:
+        current_user: Authenticated user.
+        service: Injected ServiceOrderService instance.
+        db: Database session.
+
+    Returns:
+        List of ServiceOrderSchema objects filtered by user role.
+    """
     user_roles = get_user_roles(current_user.id, db)
     user_id = current_user.id
 
@@ -53,6 +74,24 @@ def read_item(
     service: ServiceOrderService = Depends(get_service(ServiceOrderService)),
     db: Session = Depends(get_db)
 ):
+    """Retrieve a single service order by its ID.
+
+    Access control: admins and cleaners can view any order; guests can
+    only view their own orders.
+
+    Args:
+        order_id: The service order ID.
+        current_user: Authenticated user.
+        service: Injected ServiceOrderService instance.
+        db: Database session.
+
+    Returns:
+        ServiceOrderSchema object.
+
+    Raises:
+        HTTPException 404: If the order is not found.
+        HTTPException 403: If the user does not have access.
+    """
     order = service.get(order_id)
     if not order:
         raise HTTPException(status_code=404, detail='Order not found')
@@ -68,6 +107,16 @@ def create_item(
     current_user: UserModel = Depends(require_permission()),
     service: ServiceOrderService = Depends(get_service(ServiceOrderService))
 ):
+    """Create a new service order.
+
+    Args:
+        item_in: Service order creation data.
+        current_user: Authenticated user (set as the order's guest).
+        service: Injected ServiceOrderService instance.
+
+    Returns:
+        The created ServiceOrderSchema object.
+    """
     return service.create(item_in, current_user.id)
 
 
@@ -78,6 +127,21 @@ def update_item(
     current_user: UserModel = Depends(require_permission()),
     service: ServiceOrderService = Depends(get_service(ServiceOrderService))
 ):
+    """Update a service order (admin-only).
+
+    Args:
+        order_id: The service order ID.
+        item_in: Partial update data as a dictionary.
+        current_user: Authenticated user (must be admin).
+        service: Injected ServiceOrderService instance.
+
+    Returns:
+        The updated ServiceOrderSchema object.
+
+    Raises:
+        HTTPException 403: If the user is not an admin.
+        HTTPException 404: If the order is not found.
+    """
     if current_user.role != 'admin':
         raise HTTPException(status_code=403, detail='Only admin can modify orders')
     order = service.update(order_id, item_in)
@@ -92,6 +156,20 @@ def delete_item(
     current_user: UserModel = Depends(require_permission()),
     service: ServiceOrderService = Depends(get_service(ServiceOrderService))
 ):
+    """Delete a service order (admin-only, soft delete).
+
+    Args:
+        order_id: The service order ID.
+        current_user: Authenticated user (must be admin).
+        service: Injected ServiceOrderService instance.
+
+    Returns:
+        dict with success status.
+
+    Raises:
+        HTTPException 403: If the user is not an admin.
+        HTTPException 404: If the order is not found.
+    """
     if current_user.role != 'admin':
         raise HTTPException(status_code=403, detail='Only admin can delete orders')
     result = service.delete(order_id)
@@ -107,6 +185,21 @@ def assign_staff(
     current_user: UserModel = Depends(require_permission()),
     service: ServiceOrderService = Depends(get_service(ServiceOrderService))
 ):
+    """Assign a staff member (cleaner) to a service order (admin-only).
+
+    Args:
+        order_id: The service order ID.
+        staff_id: The staff/cleaner user ID to assign.
+        current_user: Authenticated user (must be admin).
+        service: Injected ServiceOrderService instance.
+
+    Returns:
+        The updated ServiceOrderSchema object.
+
+    Raises:
+        HTTPException 403: If the user is not an admin.
+        HTTPException 404: If the order is not found.
+    """
     if current_user.role != 'admin':
         raise HTTPException(status_code=403, detail='Only admin can assign staff to orders')
     order = service.assign_staff(order_id, staff_id)
@@ -121,6 +214,19 @@ def start_work(
     current_user: UserModel = Depends(require_permission()),
     service: ServiceOrderService = Depends(get_service(ServiceOrderService))
 ):
+    """Mark a service order as started (work-in-progress).
+
+    Args:
+        order_id: The service order ID.
+        current_user: Authenticated user.
+        service: Injected ServiceOrderService instance.
+
+    Returns:
+        The updated ServiceOrderSchema object.
+
+    Raises:
+        HTTPException 404: If the order is not found.
+    """
     order = service.start_work(order_id)
     if not order:
         raise HTTPException(status_code=404, detail='Order not found')
@@ -133,6 +239,19 @@ def complete_work(
     current_user: UserModel = Depends(require_permission()),
     service: ServiceOrderService = Depends(get_service(ServiceOrderService))
 ):
+    """Mark a service order as completed.
+
+    Args:
+        order_id: The service order ID.
+        current_user: Authenticated user.
+        service: Injected ServiceOrderService instance.
+
+    Returns:
+        The updated ServiceOrderSchema object.
+
+    Raises:
+        HTTPException 404: If the order is not found.
+    """
     order = service.complete(order_id)
     if not order:
         raise HTTPException(status_code=404, detail='Order not found')
@@ -147,6 +266,21 @@ def upload_photo(
     current_user: UserModel = Depends(require_permission()),
     service: ServiceOrderService = Depends(get_service(ServiceOrderService))
 ):
+    """Upload a photo (before/after) for a service order.
+
+    Args:
+        order_id: The service order ID.
+        photo_type: Type of photo (e.g. 'before', 'after').
+        photo_data: Base64-encoded image data.
+        current_user: Authenticated user.
+        service: Injected ServiceOrderService instance.
+
+    Returns:
+        The updated ServiceOrderSchema object.
+
+    Raises:
+        HTTPException 404: If the order is not found.
+    """
     order = service.upload_photo(order_id, photo_type, photo_data)
     if not order:
         raise HTTPException(status_code=404, detail='Order not found')
@@ -160,6 +294,23 @@ def cancel_order(
     current_user: UserModel = Depends(require_permission()),
     service: ServiceOrderService = Depends(get_service(ServiceOrderService))
 ):
+    """Cancel a service order.
+
+    Only the order's guest or an admin can cancel an order.
+
+    Args:
+        order_id: The service order ID.
+        reason: Optional cancellation reason.
+        current_user: Authenticated user.
+        service: Injected ServiceOrderService instance.
+
+    Returns:
+        dict with cancellation result.
+
+    Raises:
+        HTTPException 403: If the user is not authorized.
+        HTTPException 404: If the order is not found.
+    """
     order = service.get(order_id)
     if not order:
         raise HTTPException(status_code=404, detail='Order not found')
@@ -178,6 +329,20 @@ def rate_order(
     current_user: UserModel = Depends(require_permission()),
     service: ServiceOrderService = Depends(get_service(ServiceOrderService))
 ):
+    """Rate a completed service order with a score and optional comment.
+
+    Args:
+        order_id: The service order ID.
+        rate_data: Rating data including score and optional comment.
+        current_user: Authenticated user.
+        service: Injected ServiceOrderService instance.
+
+    Returns:
+        The updated ServiceOrderSchema object.
+
+    Raises:
+        HTTPException 404: If the order is not found.
+    """
     order = service.rate_order(order_id, rate_data.rating, rate_data.comment)
     if not order:
         raise HTTPException(status_code=404, detail='Order not found')
@@ -191,6 +356,20 @@ def read_paginated(
     service: ServiceOrderService = Depends(get_service(ServiceOrderService)),
     db: Session = Depends(get_db)
 ):
+    """Paginated list of service orders with role-based filtering.
+
+    Admins/managers see all orders. Cleaners see their assigned orders.
+    Guests see their own orders.
+
+    Args:
+        pageParam: Pagination parameters including page, page_size, filters, and order_by.
+        current_user: Authenticated user.
+        service: Injected ServiceOrderService instance.
+        db: Database session.
+
+    Returns:
+        dict with current_page, page_total, total, and items (list of ServiceOrderSchema).
+    """
     filter_dict: Dict[str, Any] = {}
     if pageParam.filters:
         filter_dict = pageParam.filters

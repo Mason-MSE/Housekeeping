@@ -14,6 +14,7 @@ def ensure_portal_schema_extensions() -> None:
     try:
         with engine.begin() as conn:
             def _has_column(table: str, column: str) -> bool:
+                """Check whether a column exists in the given table."""
                 q = text(
                     """
                     SELECT COUNT(*) FROM information_schema.COLUMNS

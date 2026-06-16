@@ -14,9 +14,11 @@ from model.wallet import WalletModel, TransactionModel
 
 class WalletService:
     def __init__(self, db: Session):
+        """Initialize the wallet service with a database session."""
         self.db = db
 
     def get_wallet(self, user_id: int):
+        """Retrieve or create a wallet for the given user."""
         wallet = self.db.query(WalletModel).filter(WalletModel.user_id == user_id).first()
 
         if not wallet:
@@ -28,6 +30,7 @@ class WalletService:
         return wallet
 
     def recharge(self, user_id: int, amount: float):
+        """Add funds to a user's wallet and record a recharge transaction."""
         if amount <= 0:
             return {"error": "Recharge amount must be greater than 0", "status_code": 400}
 
@@ -59,12 +62,14 @@ class WalletService:
         return {'message': 'Recharge successful', 'amount': amount}
 
     def get_transactions(self, user_id: int):
+        """Retrieve the 20 most recent transactions for a user."""
         transactions = self.db.query(TransactionModel).filter(
             TransactionModel.user_id == user_id
         ).order_by(TransactionModel.create_time.desc()).limit(20).all()
         return transactions
 
     def pay_order(self, user_id: int, order_id: int):
+        """Process payment for an order, crediting the cleaner's wallet."""
 
         order = self.db.query(ServiceOrderModel).filter(ServiceOrderModel.order_id == order_id).first()
 
@@ -173,6 +178,7 @@ class WalletService:
         return {'message': 'Payment successful'}
 
     def settle_to_cleaner(self, admin_user_id: int, order_id: int):
+        """Admin-only: settle payment to a cleaner for a completed order."""
 
         admin = self.db.query(UserModel).filter(UserModel.id == admin_user_id).first()
         if not admin or admin.role != 'admin':
@@ -229,6 +235,7 @@ class WalletService:
         return {'message': 'Settlement successful', 'amount': cleaner_amount, 'cleaner_id': order.assigned_staff_id}
 
     def get_cleaner_earnings(self, admin_user_id: int):
+        """Admin-only: retrieve earnings for all cleaners."""
 
         admin = self.db.query(UserModel).filter(UserModel.id == admin_user_id).first()
         if not admin or admin.role != 'admin':

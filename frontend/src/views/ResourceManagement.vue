@@ -3,14 +3,21 @@ import { ref, onMounted } from 'vue'
 import { resourceApi } from '@/api'
 import { ElMessage } from 'element-plus'
 
+// Loading state for data fetching
 const loading = ref(false)
+// List of API resources
 const resources = ref<any[]>([])
+// Total count of resources
 const total = ref(0)
+// Pagination page number
 const page = ref(1)
+// Pagination page size
 const pageSize = ref(20)
 
+// Search filter for resource name/link
 const searchName = ref('')
 
+// Load all resources from the API
 const loadResources = async () => {
   loading.value = true
   try {
@@ -25,6 +32,7 @@ const loadResources = async () => {
   }
 }
 
+// Filter resources by search name (not computed, called directly in template)
 const filteredResources = () => {
   if (!searchName.value) return resources.value
   return resources.value.filter(r => 
@@ -33,6 +41,7 @@ const filteredResources = () => {
   )
 }
 
+// Get the Element tag type for a given HTTP method
 const getMethodType = (method: string) => {
   const types: Record<string, string> = {
     'GET': 'success',
@@ -43,6 +52,7 @@ const getMethodType = (method: string) => {
   return types[method] || 'info'
 }
 
+// Lifecycle hook: load resources on mount
 onMounted(() => {
   loadResources()
 })

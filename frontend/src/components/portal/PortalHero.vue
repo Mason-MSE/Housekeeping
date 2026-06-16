@@ -10,8 +10,10 @@ const emit = defineEmits<{
   (e: 'search', value: string): void
 }>()
 
+// Two-way bound model for the search keyword input
 const searchKeyword = defineModel<string>('searchKeyword', { default: '' })
 
+// Emits the search keyword when the user triggers a search
 const handleSearch = () => {
   emit('update:modelValue', searchKeyword.value)
   emit('search', searchKeyword.value)

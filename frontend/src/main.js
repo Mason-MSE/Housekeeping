@@ -9,10 +9,12 @@ import router from './router'
 const app = createApp(App)
 const pinia = createPinia()
 
+// Register all Element Plus icons globally
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
 }
 
+// Apply saved theme settings (primary color, dark mode, etc.) to CSS custom properties
 const applyThemeSettings = () => {
   const savedTheme = localStorage.getItem('theme_settings')
   if (savedTheme) {
@@ -55,10 +57,12 @@ const applyThemeSettings = () => {
   }
 }
 
+// Apply theme settings on app startup
 applyThemeSettings()
 
 app.use(pinia)
 app.use(router)
 app.use(ElementPlus)
 
+// Mount the Vue application to the DOM
 app.mount('#app')

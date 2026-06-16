@@ -4,20 +4,32 @@ import { portalService } from '@/services'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
+// User store for role/permission information
 const userStore = useUserStore()
+// Loading state for the data table
 const loading = ref(false)
 
+// List of customer requirements
 const requirements = ref<any[]>([])
+// Total number of requirements matching the query
 const total = ref(0)
+// Current pagination page
 const page = ref(1)
+// Number of items per page
 const pageSize = ref(20)
+// Keys of currently expanded table rows
 const expandedRows = ref<any[]>([])
+// Search filter for requirement ID
 const requirementId = ref<string>('')
 
+// The current customer's user ID
 const userId = computed(() => userStore.userInfo?.id)
+// Array of role names for the current user
 const userRoles = computed(() => userStore.userInfo?.roles || [userStore.userInfo?.role || 'guest'])
+// Whether the current user has a guest role or no roles
 const isGuest = computed(() => userRoles.value.includes('guest') || userRoles.value.length === 0)
 
+// Fetch the customer's requirements from the API
 const loadData = async () => {
   if (!userId.value) return
   
@@ -37,23 +49,27 @@ const loadData = async () => {
   }
 }
 
+// Trigger a search with current filters, resetting to page 1
 const handleSearch = () => {
   page.value = 1
   expandedRows.value = []
   loadData()
 }
 
+// Handle pagination page change and reload data
 const handlePageChange = (newPage: number) => {
   page.value = newPage
   loadData()
 }
 
+// Handle page size change and reload data from page 1
 const handleSizeChange = (newSize: number) => {
   pageSize.value = newSize
   page.value = 1
   loadData()
 }
 
+// Return the Element Plus tag type for a given requirement status
 const getStatusType = (status: number) => {
   const types: Record<number, string> = { 
     0: 'warning', 

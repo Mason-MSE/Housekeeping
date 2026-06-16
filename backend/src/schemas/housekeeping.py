@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, computed_field, field_serializer
 
 
 class UserSchema(BaseModel):
+    """Schema representing a user."""
     id: Optional[int] = None
     username: str
     email: Optional[str] = None
@@ -20,6 +21,7 @@ class UserSchema(BaseModel):
 
 
 class UserCreateSchema(BaseModel):
+    """Schema for creating a new user."""
     username: str
     password: str
     email: Optional[str] = None
@@ -39,6 +41,7 @@ class AdminUserCreateSchema(BaseModel):
 
 
 class UserUpdateSchema(BaseModel):
+    """Schema for updating an existing user."""
     full_name: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
@@ -47,6 +50,7 @@ class UserUpdateSchema(BaseModel):
 
 
 class RoomSchema(BaseModel):
+    """Schema representing a room."""
     room_id: Optional[int] = None
     room_number: str
     floor: int
@@ -63,6 +67,7 @@ class RoomSchema(BaseModel):
 
 
 class RoomCreateSchema(BaseModel):
+    """Schema for creating a new room."""
     room_number: str
     floor: int
     room_type: str
@@ -72,6 +77,7 @@ class RoomCreateSchema(BaseModel):
 
 
 class RoomUpdateSchema(BaseModel):
+    """Schema for updating an existing room."""
     room_type: Optional[str] = None
     capacity: Optional[int] = None
     price: Optional[float] = None
@@ -93,10 +99,12 @@ class ServiceTypeSchema(BaseModel):
     @computed_field
     @property
     def type_id(self) -> int:
+        """Return the id aliased as type_id for legacy client compatibility."""
         return self.id
 
 
 class ServiceTypeCreateSchema(BaseModel):
+    """Schema for creating a new service type."""
     type_name: str
     description: Optional[str] = None
     price: float = 0
@@ -104,6 +112,7 @@ class ServiceTypeCreateSchema(BaseModel):
 
 
 class ServiceOrderSchema(BaseModel):
+    """Schema representing a service order."""
     order_id: Optional[int] = None
     order_no: Optional[str] = None
     requirement_id: Optional[int] = None
@@ -130,6 +139,7 @@ class ServiceOrderSchema(BaseModel):
 
 
 class ServiceOrderCreateSchema(BaseModel):
+    """Schema for creating a new service order."""
     requirement_id: Optional[int] = None
     room_id: int
     service_type_id: int
@@ -139,6 +149,7 @@ class ServiceOrderCreateSchema(BaseModel):
 
 
 class ServiceOrderUpdateSchema(BaseModel):
+    """Schema for updating an existing service order."""
     assigned_staff_id: Optional[int] = None
     status: Optional[int] = None
     scheduled_start: Optional[datetime] = None
@@ -150,6 +161,7 @@ class ServiceOrderUpdateSchema(BaseModel):
 
 
 class OrderPhotoSchema(BaseModel):
+    """Schema representing an order photo."""
     id: Optional[int] = None
     order_id: int
     photo_type: str
@@ -163,6 +175,7 @@ class OrderPhotoSchema(BaseModel):
 
 
 class OrderPhotoCreateSchema(BaseModel):
+    """Schema for creating a new order photo."""
     order_id: int
     photo_type: str
     photo_url: str
@@ -170,6 +183,7 @@ class OrderPhotoCreateSchema(BaseModel):
 
 
 class InspectionSchema(BaseModel):
+    """Schema representing an inspection record."""
     inspection_id: Optional[int] = None
     order_id: int
     inspector_id: int
@@ -184,6 +198,7 @@ class InspectionSchema(BaseModel):
 
 
 class InventoryItemSchema(BaseModel):
+    """Schema representing an inventory item."""
     item_id: Optional[int] = None
     item_name: str
     category: str
@@ -198,6 +213,7 @@ class InventoryItemSchema(BaseModel):
 
 
 class InventoryItemCreateSchema(BaseModel):
+    """Schema for creating a new inventory item."""
     item_name: str
     category: str
     quantity: int = 0
@@ -207,6 +223,7 @@ class InventoryItemCreateSchema(BaseModel):
 
 
 class ReviewSchema(BaseModel):
+    """Schema representing a review."""
     review_id: Optional[int] = None
     order_id: int
     rating: int
@@ -217,12 +234,14 @@ class ReviewSchema(BaseModel):
 
 
 class ReviewCreateSchema(BaseModel):
+    """Schema for creating a new review."""
     order_id: int
     rating: int
     comment: Optional[str] = None
 
 
 class NotificationSchema(BaseModel):
+    """Schema representing a notification."""
     id: Optional[int] = None
     user_id: int
     title: str
@@ -237,6 +256,7 @@ class NotificationSchema(BaseModel):
 
 
 class NotificationCreateSchema(BaseModel):
+    """Schema for creating a new notification."""
     user_id: int
     title: str
     content: Optional[str] = None
@@ -245,6 +265,7 @@ class NotificationCreateSchema(BaseModel):
 
 
 class WalletSchema(BaseModel):
+    """Schema representing a user wallet."""
     id: Optional[int] = None
     user_id: int
     balance: float
@@ -255,6 +276,7 @@ class WalletSchema(BaseModel):
 
 
 class TransactionSchema(BaseModel):
+    """Schema representing a wallet transaction."""
     model_config = ConfigDict(from_attributes=True)
 
     id: Optional[int] = None
@@ -269,30 +291,36 @@ class TransactionSchema(BaseModel):
 
     @field_serializer('create_time')
     def serialize_datetime(self, value: Optional[datetime]) -> Optional[str]:
+        """Serialize a datetime field to a formatted string."""
         if value is None:
             return None
         return value.strftime('%Y-%m-%d %H:%M:%S')
 
 
 class RechargeSchema(BaseModel):
+    """Schema for wallet recharge requests."""
     amount: float
 
 
 class RateSchema(BaseModel):
+    """Schema for rating a service order."""
     rating: float
     comment: Optional[str] = None
 
 
 class ReorderSchema(BaseModel):
+    """Schema for reordering photos."""
     photo_ids: list[int]
 
 
 class PaymentSchema(BaseModel):
+    """Schema for payment requests."""
     order_id: int
     payment_method: str = 'online'
 
 
 class OrderReviewSchema(BaseModel):
+    """Schema for submitting a review for an order."""
     order_id: int
     rating: float
     comment: Optional[str] = None

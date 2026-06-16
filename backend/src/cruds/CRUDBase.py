@@ -14,8 +14,10 @@ UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 
 
 class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
+    """Generic base class providing common CRUD operations for SQLAlchemy models."""
 
     def __init__(self, model: Type[ModelType]):
+        """Initialize the CRUD instance with the given SQLAlchemy model class."""
         self.model = model
         pk_list = model.__mapper__.primary_key
         if not pk_list:
@@ -24,15 +26,18 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.has_soft_delete = hasattr(model, "is_deleted")
 
     def _base_query(self, session: Session):
+        """Return a base query with soft-delete filtering if the model supports it."""
         query = session.query(self.model)
         if self.has_soft_delete:
             query = query.filter(self.model.is_deleted == 0)
         return query
 
     def get_all(self, session:Session):
+        """Retrieve all records from the database for this model."""
         return self._base_query(session).all()
 
     def get(self, session: Session, id: int):
+        """Retrieve a single record by its primary key."""
         return (
             self._base_query(session)
             .filter(self.pk_column == id)
@@ -40,6 +45,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         )
 
     def get_by(self, session: Session, **kwargs):
+        """Retrieve the first record matching the given filter criteria."""
         return (
             self._base_query(session)
             .filter_by(**kwargs)
@@ -47,6 +53,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         )
 
     def get_multi(self, session: Session, skip: int = 0, limit: int = 10, **filters):
+        """Retrieve paginated records with optional filters, returning total count and data list."""
         query = self._base_query(session)
 
         if filters:
@@ -57,6 +64,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return total_count, data
 
     def create(self, session: Session, obj_in: CreateSchemaType):
+        """Create a new record from a Pydantic schema and return it."""
         obj = self.model(**obj_in.dict())
         session.add(obj)
         session.commit()
@@ -64,6 +72,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return obj
 
     def update(self, session: Session, db_obj: ModelType, obj_in: UpdateSchemaType):
+        """Update an existing record with the fields from a Pydantic schema (partial update)."""
         for field, value in obj_in.dict(exclude_unset=True).items():
             setattr(db_obj, field, value)
         session.commit()
@@ -71,11 +80,13 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db_obj
 
     def delete(self, session: Session, db_obj: ModelType):
+        """Hard-delete a record from the database and return True."""
         session.delete(db_obj)
         session.commit()
         return True
 
     def soft_delete(self, session: Session, db_obj: ModelType):
+        """Mark a record as deleted by setting is_deleted to 1, if the model supports it."""
         if hasattr(db_obj, "is_deleted"):
             db_obj.is_deleted = 1
         session.commit()
@@ -90,6 +101,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         filters: Optional[Dict[str, Any]] = None,
         order_by: Optional[str] = None
     ) -> Tuple[int, List[ModelType]]:
+        """Retrieve paginated records with dict-based filtering and ordering, returning count and data."""
 
         query = self._base_query(session)
 
@@ -118,6 +130,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return total_count, data
 
     def batch_soft_delete(self, session: Session, objects: List[ModelType]) -> int:
+        """Soft-delete multiple records in a single transaction and return the count of deleted items."""
         count = 0
         try:
             for obj in objects:
@@ -131,6 +144,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return count
 
     def batch_update(self, session: Session, objects: List[ModelType], update_data: Dict[str, Any]) -> int:
+        """Batch-update multiple records with the same field values and return the count of updated items."""
         count = 0
         try:
             for obj in objects:

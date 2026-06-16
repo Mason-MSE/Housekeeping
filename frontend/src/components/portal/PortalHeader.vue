@@ -8,10 +8,14 @@ import { permissionApi } from '@/api'
 const router = useRouter()
 const userStore = useUserStore()
 
+// Whether the user is currently logged in
 const isLoggedIn = computed(() => !!userStore.userInfo)
+// The current user's info from the store
 const userInfo = computed(() => userStore.userInfo)
+// Dropdown menu items loaded based on user permissions
 const dropdownMenus = ref<any[]>([])
 
+// Loads the dropdown menu items from the server for logged-in users
 const loadMenus = async () => {
   if (!isLoggedIn.value) {
     dropdownMenus.value = []
@@ -26,6 +30,7 @@ const loadMenus = async () => {
   }
 }
 
+// Navigates to the given path or logs out if the path is 'logout'
 const goToDashboard = (path: string) => {
   if (path === 'logout') {
     userStore.logout()
@@ -35,18 +40,22 @@ const goToDashboard = (path: string) => {
   }
 }
 
+// Navigates to the login page with a redirect back to the portal
 const goToLogin = () => {
   router.push({ path: '/login', query: { redirect: 'portal' } })
 }
 
+// Navigates to the registration page with a redirect back to the portal
 const goToRegister = () => {
   router.push({ path: '/login', query: { mode: 'register', redirect: 'portal' } })
 }
 
+// Lifecycle hook: loads menus when the component mounts
 onMounted(() => {
   loadMenus()
 })
 
+// Reloads menus when the user's login status changes
 watch(isLoggedIn, () => {
   loadMenus()
 })

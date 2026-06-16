@@ -4,7 +4,7 @@ import { complaintApi } from '@/api'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
-/** Align with MyOrders order status display */
+// Maps order status numbers to display labels (aligned with MyOrders)
 const orderStatusMap: Record<number, { label: string }> = {
   0: { label: 'Pending' },
   1: { label: 'Assigned' },
@@ -17,6 +17,7 @@ const orderStatusMap: Record<number, { label: string }> = {
   8: { label: 'Cancelled' }
 }
 
+// Return the Element Plus tag type for a given order status number
 const getOrderStatusType = (status: number) => {
   const map: Record<number, string> = {
     0: 'info',
@@ -32,6 +33,7 @@ const getOrderStatusType = (status: number) => {
   return map[status] || 'info'
 }
 
+// Return the human-readable status label for a booking object
 const orderStatusLabel = (booking: Record<string, unknown> | null | undefined) => {
   if (!booking) return '—'
   const text = booking.status_text as string | undefined
@@ -40,12 +42,14 @@ const orderStatusLabel = (booking: Record<string, unknown> | null | undefined) =
   return orderStatusMap[n]?.label || 'Unknown'
 }
 
+// Return the Element Plus tag type based on complaint status
 const complaintStatusTagType = (status: string) => {
   if (status === 'resolved') return 'success'
   if (status === 'rejected') return 'info'
   return 'warning'
 }
 
+// Format a complaint resolution type code into a human-readable label
 const formatComplaintResolution = (type: string | undefined) => {
   if (!type) return ''
   const map: Record<string, string> = {
@@ -57,41 +61,59 @@ const formatComplaintResolution = (type: string | undefined) => {
   return map[type] || type
 }
 
+// Extract the list of valid photo URLs from a complaint's evidence array
 const complaintPreviewUrlList = (c: { evidence?: { photo_url?: string }[] } | null) =>
   (c?.evidence || []).map(e => e?.photo_url).filter((u): u is string => Boolean(u && String(u).trim()))
 
+// User store for role/permission information
 const userStore = useUserStore()
+// Loading state for the data table
 const loading = ref(false)
+// List of complaint items
 const items = ref<any[]>([])
+// Total number of complaints matching the query
 const total = ref(0)
+// Current pagination page
 const page = ref(1)
+// Number of items per page
 const pageSize = ref(20)
+// Selected status filter for complaints
 const statusFilter = ref<string | null>(null)
 
+// Dialog visibility for complaint detail view
 const detailVisible = ref(false)
+// Currently selected complaint for detail view
 const detailRow = ref<any>(null)
 
+// Extracted booking detail from the selected complaint row
 const bookingDetail = computed(() => detailRow.value?.booking_detail ?? null)
 
+// Dialog visibility for complaint resolution form
 const resolveVisible = ref(false)
+// Currently selected complaint being resolved
 const resolveTarget = ref<any>(null)
+// Form data for resolving a complaint
 const resolveForm = ref({
   action: 'reject',
   amount: null as number | null,
   admin_note: ''
 })
 
+// Array of role names for the current user
 const userRoles = computed(() => userStore.userInfo?.roles || [userStore.userInfo?.role || 'guest'])
+// Whether the current user has an admin/manager role
 const isAdmin = computed(() =>
   userRoles.value.some(r => ['admin', 'manager', 'administrator'].includes(String(r).toLowerCase()))
 )
 
+// Maps complaint status codes to display labels
 const statusLabel: Record<string, string> = {
   pending: 'Pending',
   resolved: 'Resolved',
   rejected: 'Rejected'
 }
 
+// Fetch the paginated list of complaints from the API
 const loadList = async () => {
   if (!isAdmin.value) return
   loading.value = true
@@ -111,6 +133,7 @@ const loadList = async () => {
   }
 }
 
+// Fetch and display the full detail of a complaint
 const openDetail = async (row: any) => {
   try {
     const full = await complaintApi.adminGet(row.id)
@@ -121,12 +144,14 @@ const openDetail = async (row: any) => {
   }
 }
 
+// Open the dialog to resolve a pending complaint
 const openResolve = (row: any) => {
   resolveTarget.value = row
   resolveForm.value = { action: 'reject', amount: null, admin_note: '' }
   resolveVisible.value = true
 }
 
+// Submit the resolution action for a complaint to the API
 const submitResolve = async () => {
   if (!resolveTarget.value) return
   const payload: any = {
@@ -154,6 +179,7 @@ const submitResolve = async () => {
   }
 }
 
+// Lifecycle hook: load complaints list on mount
 onMounted(() => {
   loadList()
 })

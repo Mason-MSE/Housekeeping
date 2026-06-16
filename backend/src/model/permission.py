@@ -7,6 +7,7 @@ from model.Base import Base
 
 
 class PermissionModel(Base):
+    """System permission entry mapped to the 'permission' table."""
     __tablename__ = 'permission'
 
     id = mapped_column(Integer, primary_key=True)

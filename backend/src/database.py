@@ -22,8 +22,10 @@ DB_PORT = os.getenv("DB_PORT", "3306")
 DB_NAME = os.getenv("DB_NAME", "housekeeping")
 
 class DatabaseManager:
+    """Manages database engine and session lifecycle."""
     @staticmethod
     def create_engine_and_session():
+        """Create and return the SQLAlchemy engine and session factory."""
         url = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?charset=utf8mb4"
 
         engine = create_engine(
@@ -39,6 +41,7 @@ engine, SessionLocal = DatabaseManager.create_engine_and_session()
 
 # Dependency for FastAPI
 def get_db() -> Generator:
+    """FastAPI dependency that yields a database session and closes it after the request."""
     db = SessionLocal()
     try:
         yield db

@@ -15,6 +15,7 @@ import { transactionApi, reviewApi } from './modules/transaction'
 import { complaintApi } from './modules/complaint'
 import request from './request'
 
+// Re-export the axios request instance and all API module objects
 export { 
   request,
   authApi,

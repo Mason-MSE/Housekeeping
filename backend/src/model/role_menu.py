@@ -7,6 +7,7 @@ from model.Base import Base
 
 
 class RoleMenuModel(Base):
+    """Many-to-many association between roles and menus, mapped to the 'role_menu' table."""
     __tablename__ = 'role_menu'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

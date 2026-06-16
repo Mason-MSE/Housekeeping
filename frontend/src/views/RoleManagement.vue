@@ -3,31 +3,54 @@ import { ref, onMounted, reactive, computed } from 'vue'
 import { roleApi, permissionApi } from '@/api'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 
+// Loading state for data fetching
 const loading = ref(false)
+// List of roles
 const roles = ref<any[]>([])
+// List of all permissions
 const permissions = ref<any[]>([])
+// Total count of roles
 const total = ref(0)
+// Pagination page number
 const page = ref(1)
+// Pagination page size
 const pageSize = ref(20)
 
+// Current user's permission codes
 const permissionCodes = ref<string[]>([])
+// Computed whether the user has role:view
 const canView = computed(() => permissionCodes.value.includes('role:view'))
+// Computed whether the user has role:create
 const canCreate = computed(() => permissionCodes.value.includes('role:create'))
+// Computed whether the user has role:update
 const canUpdate = computed(() => permissionCodes.value.includes('role:update'))
+// Computed whether the user has role:delete
 const canDelete = computed(() => permissionCodes.value.includes('role:delete'))
 
+// Dialog visibility for permission assignment
 const showPermissionDialog = ref(false)
+// Dialog visibility for menu assignment
 const showMenuDialog = ref(false)
+// Dialog visibility for create/edit role
 const showRoleDialog = ref(false)
+// Dialog mode (create or edit)
 const roleDialogMode = ref<'create' | 'edit'>('create')
+// Currently selected role for operations
 const selectedRole = ref<any>(null)
+// Selected permission IDs for a role
 const selectedPermissions = ref<number[]>([])
+// Selected menu IDs for a role
 const selectedMenus = ref<number[]>([])
+// All available menus
 const allMenus = ref<any[]>([])
+// Loading state for permission/menu operations
 const loadingRef = ref(false)
+// Loading state for role form submission
 const roleSubmitLoading = ref(false)
 
+// Form reference for role validation
 const roleFormRef = ref<FormInstance>()
+// Reactive form model for create/edit role
 const roleForm = reactive({
   id: null as number | null,
   role_name: '',
@@ -39,11 +62,13 @@ const roleRules: FormRules = {
   role_name: [{ required: true, message: 'Please enter role name', trigger: 'blur' }]
 }
 
+// Computed paginated slice of roles
 const pagedRoles = computed(() => {
   const start = (page.value - 1) * pageSize.value
   return roles.value.slice(start, start + pageSize.value)
 })
 
+// Load all roles from the API
 const loadRoles = async () => {
   loading.value = true
   try {
@@ -60,6 +85,7 @@ const loadRoles = async () => {
   }
 }
 
+// Load all permissions from the API
 const loadPermissions = async () => {
   try {
     const res = await permissionApi.list()
@@ -69,6 +95,7 @@ const loadPermissions = async () => {
   }
 }
 
+// Load all menus from the API
 const loadMenus = async () => {
   try {
     const res = await permissionApi.getMenus()
@@ -78,6 +105,7 @@ const loadMenus = async () => {
   }
 }
 
+// Load the current user's permission codes
 const loadMyPermissions = async () => {
   try {
     const res = await permissionApi.getMyPermissions()
@@ -88,6 +116,7 @@ const loadMyPermissions = async () => {
   }
 }
 
+// Reset the role form to defaults
 const resetRoleForm = () => {
   roleForm.id = null
   roleForm.role_name = ''
@@ -96,12 +125,14 @@ const resetRoleForm = () => {
   roleFormRef.value?.resetFields()
 }
 
+// Open the create role dialog
 const openCreateRole = () => {
   roleDialogMode.value = 'create'
   resetRoleForm()
   showRoleDialog.value = true
 }
 
+// Open the edit role dialog with row data
 const openEditRole = (row: any) => {
   roleDialogMode.value = 'edit'
   roleForm.id = row.id
@@ -111,6 +142,7 @@ const openEditRole = (row: any) => {
   showRoleDialog.value = true
 }
 
+// Submit the create/edit role form
 const submitRole = async () => {
   if (!roleFormRef.value) return
   await roleFormRef.value.validate(async (valid) => {
@@ -146,6 +178,7 @@ const submitRole = async () => {
   })
 }
 
+// Delete a role after confirmation
 const confirmDeleteRole = async (row: any) => {
   try {
     await ElMessageBox.confirm(
@@ -163,6 +196,7 @@ const confirmDeleteRole = async (row: any) => {
   }
 }
 
+// Open the dialog to assign permissions to a role
 const openPermissionDialog = async (role: any) => {
   selectedRole.value = role
   selectedPermissions.value = role.permissions?.map((p: any) => p.id) || []
@@ -179,6 +213,7 @@ const openPermissionDialog = async (role: any) => {
   showPermissionDialog.value = true
 }
 
+// Open the dialog to assign menus to a role
 const openMenuDialog = async (role: any) => {
   selectedRole.value = role
   selectedMenus.value = []
@@ -193,6 +228,7 @@ const openMenuDialog = async (role: any) => {
   showMenuDialog.value = true
 }
 
+// Save the permission assignments for the selected role
 const savePermissions = async () => {
   if (!selectedRole.value) return
   loadingRef.value = true
@@ -208,6 +244,7 @@ const savePermissions = async () => {
   }
 }
 
+// Save the menu assignments for the selected role
 const saveMenus = async () => {
   if (!selectedRole.value) return
   loadingRef.value = true
@@ -223,10 +260,12 @@ const saveMenus = async () => {
   }
 }
 
+// Reset to page 1 when page size changes
 const handlePageSizeChange = () => {
   page.value = 1
 }
 
+// Lifecycle hook: load permissions, roles, and menus on mount
 onMounted(() => {
   loadMyPermissions()
   loadRoles()

@@ -7,6 +7,7 @@ from model.Base import Base
 
 
 class UserRoleModel(Base):
+    """Many-to-many association between users and roles, mapped to the 'user_role' table."""
     __tablename__ = 'user_role'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

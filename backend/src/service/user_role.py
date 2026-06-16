@@ -27,5 +27,6 @@ class user_role(ServiceBase[UserRoleModel, UserRoleCreateSchema, UserRoleUpdateS
     business logic for this model.
     """
     def __init__(self, db: Session):
+        """Initialize the user_role service with DB session and CRUD instance."""
         crud_instance = super().get_crud(crud_cls=user_role_crud, model_cls=UserRoleModel)
         super().__init__(crud=crud_instance, db=db)

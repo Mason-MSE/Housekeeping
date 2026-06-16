@@ -2,12 +2,17 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi, userApi } from '@/api'
 
+// Pinia store managing user authentication state, token, and profile
 export const useUserStore = defineStore('user', () => {
+  // Reactive token from localStorage
   const token = ref(localStorage.getItem('token') || '')
+  // Reactive user info object from localStorage
   const userInfo = ref(JSON.parse(localStorage.getItem('userInfo') || 'null'))
 
+  // Whether the user has a valid token
   const isLoggedIn = computed(() => !!token.value)
   
+  // The user's primary role (defaults to 'guest')
   const userRole = computed(() => {
     if (!userInfo.value) return 'guest'
     if (userInfo.value.roles && userInfo.value.roles.length > 0) {
@@ -16,6 +21,7 @@ export const useUserStore = defineStore('user', () => {
     return userInfo.value.role || 'guest'
   })
 
+  // Authenticate with username/password, store token and fetch user info
   async function login(username, password) {
     const formData = new URLSearchParams()
     formData.append('grant_type', 'password')
@@ -24,6 +30,7 @@ export const useUserStore = defineStore('user', () => {
 
     const res = await authApi.login(formData)
     
+    // If 2FA is required, return early without setting token
     if (res.requires_2fa) {
       return res
     }
@@ -56,6 +63,7 @@ export const useUserStore = defineStore('user', () => {
     return res
   }
 
+  // Fetch and update the current user's info from the API
   async function getUserInfo() {
     try {
       const users = await userApi.list()
@@ -82,6 +90,7 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  // Clear token and user info, effectively logging the user out
   function logout() {
     token.value = ''
     userInfo.value = null

@@ -27,5 +27,6 @@ class resource(ServiceBase[ResourceModel, ResourceCreateSchema, ResourceUpdateSc
     business logic for this model.
     """
     def __init__(self, db: Session):
+        """Initialize the resource service with DB session and CRUD instance."""
         crud_instance = super().get_crud(crud_cls=resource_crud, model_cls=ResourceModel)
         super().__init__(crud=crud_instance, db=db)

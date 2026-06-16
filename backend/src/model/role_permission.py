@@ -7,6 +7,7 @@ from model.Base import Base
 
 
 class RolePermissionModel(Base):
+    """Many-to-many association between roles and permissions, mapped to the 'role_permission' table."""
     __tablename__ = 'role_permission'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

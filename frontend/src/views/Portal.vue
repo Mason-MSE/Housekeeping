@@ -23,24 +23,36 @@ import RequirementDialog from '@/components/portal/RequirementDialog.vue'
 import ApplicationsDialog from '@/components/portal/ApplicationsDialog.vue'
 import ReviewDetailDialog from '@/components/portal/ReviewDetailDialog.vue'
 
+// Router instance
 const router = useRouter()
+// User store instance
 const userStore = useUserStore()
 
+// Computed whether the user is logged in
 const isLoggedIn = computed(() => !!userStore.userInfo)
+// Computed current user info
 const userInfo = computed(() => userStore.userInfo)
+// Computed user role list
 const userRoles = computed(() => userStore.userInfo?.roles || [userStore.userInfo?.role || 'guest'])
+// Computed primary user role
 const userRole = computed(() => userRoles.value[0])
+// Computed whether the user is a cleaner/staff/employee
 const isCleaner = computed(() => userRoles.value.some(r => ['staff', 'cleaner', 'employee'].includes(r.toLowerCase())))
+// Computed whether the user is an admin
 const isAdmin = computed(() => userRoles.value.some(r => ['admin', 'administrator'].includes(r.toLowerCase())))
 
 console.log(userRoles);
 
 
+// User resource list
 const userResources = ref<string[]>([])
 
+// Search keyword for filtering services
 const searchKeyword = ref('')
+// Reference to the services section element
 const servicesSectionRef = ref<HTMLElement | null>(null)
 
+// Handle search and scroll to services section
 const handleSearch = (keyword: string) => {
   nextTick(() => {
     const element = document.querySelector('.services-section')
@@ -50,10 +62,15 @@ const handleSearch = (keyword: string) => {
   })
 }
 
+// Loading state for data fetching
 const loading = ref(false)
+// List of services/categories
 const services = ref<any[]>([])
+// List of rooms
 const rooms = ref<any[]>([])
+// Portal statistics
 const stats = ref({ total_users: 0, total_orders: 0, total_rooms: 0, rating: 4.9 })
+// Company information
 const companyInfo = ref<any>({
   about_us: '',
   phone: '',
@@ -64,34 +81,55 @@ const companyInfo = ref<any>({
   instagram: ''
 })
 
+// Testimonial/review data
 const testimonials = ref<any[]>([])
+// Whether there are more reviews to load
 const hasMoreReviews = ref(false)
+// Offset for paginated review loading
 const reviewsOffset = ref(0)
+// Number of reviews to load per batch
 const reviewsLimit = 6
 
+// Promotion banner data
 const ads = ref([
   { id: 1, title: 'New User Special', subtitle: '30% off first order', color: '#ff6b6b' },
   { id: 2, title: 'Member Benefits', subtitle: 'Recharge $500 get $100', color: '#4ecdc4' },
 ])
 
+// Dialog visibility for cleaner selection
 const showCleanerDialog = ref(false)
+// Dialog visibility for service detail
 const showServiceDetailDialog = ref(false)
+// Dialog visibility for order creation
 const showOrderDialog = ref(false)
+// Dialog visibility for requirement posting
 const showRequirementDialog = ref(false)
+// Dialog visibility for applying to a requirement
 const showApplyDialog = ref(false)
+// Dialog visibility for review detail
 const showReviewDetailDialog = ref(false)
 
+// Currently viewed service detail
 const serviceDetail = ref<any>(null)
+// Currently selected service
 const selectedService = ref<any>(null)
+// Currently selected cleaner
 const selectedCleaner = ref<any>(null)
+// Currently selected requirement
 const selectedRequirement = ref<any>(null)
+// Currently selected review
 const selectedReview = ref<any>(null)
+// List of applications for a requirement
 const applications = ref<any[]>([])
+// List of available cleaners
 const cleaners = ref<any[]>([])
 
+// Cleaner search query
 const cleanerSearch = ref('')
+// Cleaner sort option
 const cleanerSort = ref('')
 
+// Form data for posting a requirement
 const requirementForm = ref({
   guest_name: '',
   guest_phone: '',
@@ -110,6 +148,7 @@ const requirementForm = ref({
   description: ''
 })
 
+// Form data for creating an order
 const orderForm = ref({
   service_type_id: 0,
   guest_name: '',
@@ -123,6 +162,7 @@ const orderForm = ref({
   cleaner_id: null as number | null
 })
 
+// Form data for applying to a requirement
 const applyForm = ref({
   requirement_id: 0,
   cleaner_id: 0,
@@ -131,23 +171,28 @@ const applyForm = ref({
   message: ''
 })
 
+// Computed whether the user can view the cleaners section
 const canViewCleaners = computed(() => {
   return userRoles.value.some(r => ['administrator', 'admin', 'manager', 'guest'].includes(r.toLowerCase()))
 })
 
+// Computed whether the user can post a requirement
 const canPostRequirement = computed(() => {
   return userRoles.value.some(r => ['administrator', 'admin', 'manager', 'guest'].includes(r.toLowerCase()))
 })
 
+// Computed whether the user can apply to a requirement
 const canApplyRequirement = computed(() => {
   return userRoles.value.some(r => ['administrator', 'admin', 'cleaner', 'manager', 'guest'].includes(r.toLowerCase()))
 })
 
+// Computed whether the user can book a service
 const canBookService = computed(() => {
   if (userRoles.value.some(r => ['cleaner', 'staff', 'employee'].includes(r.toLowerCase()))) return false
   return userRoles.value.some(r => ['administrator', 'admin', 'manager', 'guest'].includes(r.toLowerCase())) || !isLoggedIn.value
 })
 
+// Load the user's role resources from the API
 const loadRoleResources = async () => {
   if (!isLoggedIn.value) {
     userRole.value = 'guest'
@@ -165,6 +210,7 @@ const loadRoleResources = async () => {
   }
 }
 
+// Load all portal data (services, stats, company info, cleaners, requirements, reviews)
 const loadData = async () => {
   try {
     loading.value = true
@@ -202,13 +248,16 @@ const loadData = async () => {
   }
 }
 
+// Lifecycle hook: load role resources and portal data on mount
 onMounted(async () => {
   await loadRoleResources()
   loadData()
 })
 
+// List of posted requirements
 const requirements = ref<any[]>([])
 
+// Handle click on a service category, load detail and open dialog
 const handleCategoryClick = async (service: any) => {
   try {
     loading.value = true
@@ -223,6 +272,7 @@ const handleCategoryClick = async (service: any) => {
   }
 }
 
+// Open the cleaner selection dialog
 const openCleanerSelection = async (service?: any) => {
   if (service) {
     selectedService.value = service
@@ -231,6 +281,7 @@ const openCleanerSelection = async (service?: any) => {
   showCleanerDialog.value = true
 }
 
+// Load available cleaners from the API
 const loadCleaners = async () => {
   try {
     const params: any = {}
@@ -247,12 +298,14 @@ const loadCleaners = async () => {
   }
 }
 
+// Handle cleaner search/filter changes
 const handleCleanerSearch = (params: { search?: string; sort_by?: string }) => {
   cleanerSearch.value = params.search || ''
   cleanerSort.value = params.sort_by || ''
   loadCleaners()
 }
 
+// Select a cleaner and proceed to order dialog
 const selectCleaner = (cleaner: any) => {
   selectedCleaner.value = cleaner
   orderForm.value.cleaner_id = cleaner.id
@@ -260,11 +313,13 @@ const selectCleaner = (cleaner: any) => {
   openOrderDialog(selectedService.value)
 }
 
+// Handle booking a service from the service detail dialog
 const handleBookNow = (service: any) => {
   showServiceDetailDialog.value = false
   openOrderDialog(service)
 }
 
+// Open the order dialog and pre-fill form with service and user data
 const openOrderDialog = (service: any) => {
   selectedService.value = service
   const u = userInfo.value as Record<string, unknown> | null | undefined
@@ -290,10 +345,12 @@ const openOrderDialog = (service: any) => {
   showOrderDialog.value = true
 }
 
+// Handle order action (alias for openOrderDialog)
 const handleOrder = (service: any) => {
   openOrderDialog(service)
 }
 
+// Submit a new order to the API
 const submitOrder = async (formFromDialog?: typeof orderForm.value) => {
   const f = formFromDialog || orderForm.value
   if (!f.guest_name?.trim() || !f.guest_phone?.trim()) {
@@ -309,7 +366,8 @@ const submitOrder = async (formFromDialog?: typeof orderForm.value) => {
     return
   }
 
-  const normalizeScheduledTime = (v: unknown) => {
+    // Normalize scheduled time format for the API
+    const normalizeScheduledTime = (v: unknown) => {
     if (typeof v !== 'string') return v
     const s = v.trim()
     if (!s) return s
@@ -359,6 +417,7 @@ const submitOrder = async (formFromDialog?: typeof orderForm.value) => {
   }
 }
 
+// Submit a new requirement to the API
 const submitRequirement = async (form: any) => {
   if (!form.guest_name || !form.guest_phone) {
     ElMessage.warning('Please fill in name and phone')
@@ -380,6 +439,7 @@ const submitRequirement = async (form: any) => {
   }
 }
 
+// View applications for a given requirement
 const viewApplications = async (requirement: any) => {
   selectedRequirement.value = requirement
   applyForm.value = {
@@ -398,6 +458,7 @@ const viewApplications = async (requirement: any) => {
   }
 }
 
+// Open the application form for a requirement
 const openApplyForm = (requirement: any) => {
   if (!isLoggedIn.value) {
     ElMessage.warning('Please login first')
@@ -420,6 +481,7 @@ const openApplyForm = (requirement: any) => {
   showApplyDialog.value = true
 }
 
+// Submit the application form for a requirement
 const submitApplication = async () => {
   if (!applyForm.value.cleaner_name || !applyForm.value.offered_price) {
     ElMessage.warning('Please fill in your name and offer price')
@@ -447,6 +509,7 @@ const submitApplication = async () => {
   }
 }
 
+// Load more reviews/testimonials with pagination offset
 const loadMoreReviews = async () => {
   try {
     loading.value = true
@@ -474,11 +537,13 @@ const loadMoreReviews = async () => {
   }
 }
 
+// Open the review detail dialog
 const viewReviewDetail = (review: any) => {
   selectedReview.value = review
   showReviewDetailDialog.value = true
 }
 
+// Handle posting a new requirement (login check then open dialog)
 const handlePostRequirement = () => {
   if (!isLoggedIn.value) {
     ElMessage.warning('Please login first')

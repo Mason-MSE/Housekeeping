@@ -4,16 +4,25 @@ import { walletApi } from '@/api'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
+// User store instance
 const userStore = useUserStore()
+// Loading state for data fetching
 const loading = ref(false)
+// Wallet balance information
 const walletInfo = ref({ balance: 0, frozen_balance: 0 })
+// List of wallet transactions
 const transactions = ref([])
+// Dialog visibility for recharge
 const rechargeDialogVisible = ref(false)
+// Recharge amount input
 const rechargeAmount = ref(100)
 
+// Computed user role list
 const userRoles = computed(() => userStore.userInfo?.roles || [userStore.userInfo?.role || 'guest'])
+// Computed whether the user can recharge
 const canRecharge = computed(() => userRoles.value.some(r => ['admin', 'guest'].includes(r)))
 
+// Fetch wallet info and transaction history from API
 const fetchWallet = async () => {
   loading.value = true
   try {
@@ -30,6 +39,7 @@ const fetchWallet = async () => {
   }
 }
 
+// Submit a recharge request
 const handleRecharge = async () => {
   if (rechargeAmount.value <= 0) {
     ElMessage.warning('Please enter valid amount')
@@ -46,11 +56,13 @@ const handleRecharge = async () => {
   }
 }
 
+// Format a date string for display
 const formatDate = (date: string) => {
   if (!date) return '-'
   return new Date(date).toLocaleString('en-US')
 }
 
+// Get the display label for a transaction type
 const getTypeLabel = (type: string) => {
   const map: Record<string, string> = {
     recharge: 'Recharge',
@@ -64,6 +76,7 @@ const getTypeLabel = (type: string) => {
   return map[type] || type
 }
 
+// Get the Element tag color for a transaction type
 const getTypeColor = (type: string) => {
   const map: Record<string, string> = {
     recharge: 'success',
@@ -77,12 +90,13 @@ const getTypeColor = (type: string) => {
   return map[type] || 'info'
 }
 
-/** Types that reduce wallet balance (show − and red). */
+// Check if a transaction type is a debit (reduces balance)
 const isWalletDebitType = (type: string) => {
   const t = (type || '').toLowerCase()
   return t === 'payment' || t === 'refund_clawback'
 }
 
+// Format transaction amount with sign and CSS class
 const formatTxAmount = (row: { type: string; amount?: number }) => {
   const raw = Number(row.amount)
   const fixed = Number.isFinite(raw) ? raw.toFixed(2) : '0.00'
@@ -94,6 +108,7 @@ const formatTxAmount = (row: { type: string; amount?: number }) => {
   }
 }
 
+// Lifecycle hook: fetch wallet data on mount
 onMounted(() => {
   fetchWallet()
 })

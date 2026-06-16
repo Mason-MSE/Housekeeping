@@ -19,6 +19,7 @@ router = APIRouter(prefix='/api', tags=['rbac'])
 
 
 class PermissionSchema(BaseModel):
+    """Schema for permission response."""
     id: Optional[int] = None
     permission_code: str
     permission_name: Optional[str] = None
@@ -45,6 +46,7 @@ class PermissionUpdateSchema(BaseModel):
 
 
 class MenuSchema(BaseModel):
+    """Schema for menu response."""
     id: Optional[int] = None
     menu_name: str
     path: Optional[str] = None
@@ -80,6 +82,7 @@ class MenuUpdateSchema(BaseModel):
 
 
 class RoleSchema(BaseModel):
+    """Schema for role response including associated permissions."""
     id: Optional[int] = None
     role_name: str
     role_code: Optional[str] = None
@@ -92,10 +95,12 @@ class RoleSchema(BaseModel):
 
 
 class AssignPermissionsSchema(BaseModel):
+    """Payload for assigning permissions to a role."""
     permission_ids: List[int]
 
 
 class AssignMenusSchema(BaseModel):
+    """Payload for assigning menus to a role."""
     menu_ids: List[int]
 
 

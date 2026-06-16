@@ -5,11 +5,15 @@ import { userApi } from '@/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
+// Router instance
 const router = useRouter()
+// User store instance
 const userStore = useUserStore()
 
+// Computed user role list
 const userRoles = computed(() => userStore.userInfo?.roles || [userStore.userInfo?.role || 'guest'])
 
+// Lifecycle hook: check admin access on mount
 onMounted(() => {
   if (!userRoles.value.includes('admin')) {
     ElMessage.warning('Access denied')
@@ -17,11 +21,16 @@ onMounted(() => {
   }
 })
 
+// Loading state for data fetching
 const loading = ref(false)
+// List of users
 const userList = ref([])
 
+// Dialog visibility for create/edit
 const dialogVisible = ref(false)
+// Dialog title
 const dialogTitle = ref('')
+// Form data for create/edit user
 const formData = ref({
   id: null,
   username: '',
@@ -44,6 +53,7 @@ const roleOptions = [
   { value: 'cleaner', label: 'Cleaner' }
 ]
 
+// Fetch all users from the API
 const fetchUsers = async () => {
   loading.value = true
   try {
@@ -56,18 +66,21 @@ const fetchUsers = async () => {
   }
 }
 
+// Open dialog to add a new user
 const handleAdd = () => {
   dialogTitle.value = 'Add User'
   formData.value = { id: null, username: '', password: '', full_name: '', email: '', phone: '', role: 'guest' }
   dialogVisible.value = true
 }
 
+// Open dialog to edit an existing user
 const handleEdit = (row: any) => {
   dialogTitle.value = 'Edit User'
   formData.value = { ...row, password: '' }
   dialogVisible.value = true
 }
 
+// Delete a user after confirmation
 const handleDelete = async (row: any) => {
   try {
     await ElMessageBox.confirm('Are you sure to delete this user?', 'Confirm', {
@@ -85,6 +98,7 @@ const handleDelete = async (row: any) => {
   }
 }
 
+// Submit the create/edit user form
 const handleSubmit = async () => {
   try {
     const data = { ...formData.value }
@@ -105,10 +119,12 @@ const handleSubmit = async () => {
   }
 }
 
+// Lifecycle hook: fetch users on mount
 onMounted(() => {
   fetchUsers()
 })
 
+// Get the Element tag type for a given role name
 const getRoleType = (role: string) => {
   const map: Record<string, string> = {
     admin: 'danger',

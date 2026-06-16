@@ -10,6 +10,7 @@ from model.Base import Base
 
 
 class ResourceModel(Base):
+    """Backend resource (API endpoint) definition mapped to the 'resource' table."""
     __tablename__ = 'resource'
 
     id = mapped_column(Integer, primary_key=True)

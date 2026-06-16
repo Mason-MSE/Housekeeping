@@ -11,12 +11,19 @@ export default {
     const router = useRouter()
     const userStore = useUserStore()
     
+    // List of notifications
     const notifications = ref([])
+    // Loading state for data fetching
     const loading = ref(false)
+    // Array of selected notification IDs
     const selectedIds = ref([])
+    // Pagination current page
     const currentPage = ref(1)
+    // Pagination page size
     const pageSize = ref(10)
+    // Total count of notifications
     const total = ref(0)
+    // Filter form model
     const filterForm = ref({
       type: null,
       is_read: null,
@@ -36,6 +43,7 @@ export default {
       { value: 1, label: 'Read' }
     ]
     
+    // Fetch notifications from the API with pagination and filters
     const fetchNotifications = async () => {
       try {
         loading.value = true
@@ -57,6 +65,7 @@ export default {
       }
     }
     
+    // Mark a single notification as read
     const handleRead = async (id: number) => {
       try {
         await notificationApi.markAsRead(id)
@@ -72,6 +81,7 @@ export default {
       }
     }
     
+    // Mark all notifications as read
     const handleReadAll = async () => {
       try {
         await notificationApi.markAllAsRead()
@@ -84,6 +94,7 @@ export default {
       }
     }
     
+    // Delete a single notification after confirmation
     const handleDelete = async (id: number) => {
       try {
         await ElMessageBox.confirm('Are you sure to delete this notification?', 'Confirm', {
@@ -103,6 +114,7 @@ export default {
       }
     }
     
+    // Delete all selected notifications after confirmation
     const handleDeleteSelected = async () => {
       if (selectedIds.value.length === 0) {
         ElMessage.warning('No notifications selected')
@@ -128,6 +140,7 @@ export default {
       }
     }
     
+    // Mark all selected notifications as read
     const handleReadSelected = async () => {
       if (selectedIds.value.length === 0) {
         ElMessage.warning('No notifications selected')
@@ -151,6 +164,7 @@ export default {
       }
     }
     
+    // Toggle a single notification selection by ID
     const toggleSelection = (row: any) => {
       const index = selectedIds.value.indexOf(row.id)
       if (index > -1) {
@@ -160,6 +174,7 @@ export default {
       }
     }
     
+    // Handle select-all checkbox change
     const selectAll = (selection: any) => {
       if (selection.length > 0) {
         selectedIds.value = notifications.value.map(n => n.id)
@@ -168,6 +183,7 @@ export default {
       }
     }
     
+    // Format a date string into a human-readable relative time
     const formatTime = (time: string) => {
       if (!time) return ''
       const date = new Date(time)
@@ -184,6 +200,7 @@ export default {
       return date.toLocaleDateString()
     }
     
+    // Get the icon name for a given notification type
     const getNotificationIcon = (type: string) => {
       switch (type) {
         case 'warning':
@@ -195,6 +212,7 @@ export default {
       }
     }
     
+    // Get the color for a given notification type
     const getNotificationColor = (type: string) => {
       switch (type) {
         case 'warning':
@@ -206,32 +224,38 @@ export default {
       }
     }
     
+    // Get the count of unread notifications
     const getUnreadCount = () => {
       return notifications.value.filter(n => n.is_read === 0).length
     }
     
+    // Handle pagination page change
     const handlePageChange = (page: number) => {
       currentPage.value = page
       fetchNotifications()
     }
     
+    // Handle pagination page size change
     const handleSizeChange = (size: number) => {
       pageSize.value = size
       currentPage.value = 1
       fetchNotifications()
     }
     
+    // Apply filters and reload notifications
     const handleFilter = () => {
       currentPage.value = 1
       fetchNotifications()
     }
     
+    // Reset all filters to default and reload
     const handleReset = () => {
       filterForm.value = { type: null, is_read: null, title: '' }
       currentPage.value = 1
       fetchNotifications()
     }
     
+    // Lifecycle hook: fetch notifications on component mount
     onMounted(() => {
       fetchNotifications()
     })

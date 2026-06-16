@@ -4,15 +4,23 @@ import { portalApi } from '@/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
+// User store for role/permission information
 const userStore = useUserStore()
+// Loading state for the data table
 const loading = ref(false)
 
+// List of customer requirements
 const requirements = ref<any[]>([])
+// List of available cleaners for assignment
 const cleaners = ref<any[]>([])
+// Total number of requirements matching the query
 const total = ref(0)
+// Current pagination page
 const page = ref(1)
+// Number of items per page
 const pageSize = ref(20)
 
+// Filter criteria for the requirements list
 const filters = ref({
   guest_name: '',
   guest_phone: '',
@@ -22,16 +30,24 @@ const filters = ref({
   end_date: ''
 })
 
+// Date range picker model
 const dateRange = ref<[string, string] | null>(null)
 
+// Dialog visibility for cleaner assignment
 const showAssignDialog = ref(false)
+// The requirement currently being assigned
 const selectedRequirement = ref<any>(null)
+// The selected cleaner ID for assignment
 const selectedCleanerId = ref<any>(null)
+// Loading state during assignment submission
 const assignLoading = ref(false)
 
+// Array of role names for the current user
 const userRoles = computed(() => userStore.userInfo?.roles || [userStore.userInfo?.role || 'guest'])
+// Whether the current user has an admin/manager role
 const isAdmin = computed(() => userRoles.value.some(r => ['admin', 'manager', 'administrator'].includes(r.toLowerCase())))
 
+// Options for requirement status filter
 const statusOptions = [
   { value: 0, label: 'Pending', type: 'warning' },
   { value: 1, label: 'Assigned', type: 'success' },
@@ -39,8 +55,10 @@ const statusOptions = [
   { value: 3, label: 'Completed', type: 'info' }
 ]
 
+// Available property type options
 const propertyTypes = ['House', 'Apartment', 'Villa', 'Condo', 'Townhouse', 'Studio']
 
+// Fetch requirements and cleaners data from the API
 const loadData = async () => {
   if (!isAdmin.value) return
   
@@ -72,11 +90,13 @@ const loadData = async () => {
   }
 }
 
+// Trigger a search with current filters, resetting to page 1
 const handleSearch = () => {
   page.value = 1
   loadData()
 }
 
+// Reset all filters and reload data from page 1
 const handleReset = () => {
   filters.value = {
     guest_name: '',
@@ -91,6 +111,7 @@ const handleReset = () => {
   loadData()
 }
 
+// Update date filters when the date range picker changes
 const handleDateRangeChange = (val: [string, string] | null) => {
   if (val) {
     filters.value.start_date = val[0]
@@ -103,33 +124,38 @@ const handleDateRangeChange = (val: [string, string] | null) => {
   loadData()
 }
 
+// Handle pagination page change and reload data
 const handlePageChange = (newPage: number) => {
   page.value = newPage
   loadData()
 }
 
+// Handle page size change and reload data from page 1
 const handleSizeChange = (newSize: number) => {
   pageSize.value = newSize
   page.value = 1
   loadData()
 }
 
+// Return the Element Plus tag type for a given requirement status
 const getStatusType = (status: number) => {
   const types: Record<number, string> = { 0: 'warning', 1: 'success', 2: 'primary', 3: 'info' }
   return types[status] || 'info'
 }
 
+// Return the human-readable label for a given requirement status
 const getStatusLabel = (status: number) => {
   const labels: Record<number, string> = { 0: 'Pending', 1: 'Assigned', 2: 'In Progress', 3: 'Completed' }
   return labels[status] || 'Unknown'
 }
 
-/** Assign Cleaner 下拉仅显示登录名 username。 */
+// Return the cleaner's username for display in the assign dropdown
 const cleanerUsername = (c: any) => {
   const u = (c?.username || '').trim()
   return u || `#${c?.id ?? '?'}`
 }
 
+// Open the dialog to assign a cleaner to a requirement
 const openAssignDialog = (req: any) => {
   if (req.can_reassign_cleaner === false) {
     ElMessage.warning(
@@ -142,6 +168,7 @@ const openAssignDialog = (req: any) => {
   showAssignDialog.value = true
 }
 
+// Confirm and submit the cleaner assignment to the API
 const confirmAssign = async () => {
   if (!selectedRequirement.value || !selectedCleanerId.value) {
     ElMessage.warning('Please select a cleaner')
@@ -162,6 +189,7 @@ const confirmAssign = async () => {
   }
 }
 
+// Hide a requirement from the portal after user confirmation
 const handleHide = async (req: any) => {
   try {
     await ElMessageBox.confirm(`Are you sure you want to hide this requirement?`, 'Confirm', {
@@ -181,6 +209,7 @@ const handleHide = async (req: any) => {
   }
 }
 
+// Permanently delete a requirement after user confirmation
 const handleDelete = async (req: any) => {
   try {
     await ElMessageBox.confirm(`Are you sure you want to permanently delete this requirement? This action cannot be undone.`, 'Confirm Delete', {
@@ -200,6 +229,7 @@ const handleDelete = async (req: any) => {
   }
 }
 
+// Lifecycle hook: load requirements data on mount
 onMounted(() => {
   loadData()
 })

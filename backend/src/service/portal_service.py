@@ -1395,6 +1395,7 @@ class PortalService:
         }
 
     def _get_status_text(self, status: int) -> str:
+        """Return a human-readable status label for a numeric status code."""
         status_map = {
             0: 'Pending',
             1: 'Assigned',

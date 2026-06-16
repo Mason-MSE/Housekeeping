@@ -18,6 +18,15 @@ def get_all(
     current_user: UserModel = Depends(require_permission()),
     service: ServiceTypeService = Depends(get_service(ServiceTypeService))
 ):
+    """Retrieve all service type records.
+
+    Args:
+        current_user: Authenticated user.
+        service: Injected ServiceTypeService instance.
+
+    Returns:
+        List of ServiceTypeSchema objects.
+    """
     return service.get_all()
 
 
@@ -27,6 +36,19 @@ def get_item(
     current_user: UserModel = Depends(require_permission()),
     service: ServiceTypeService = Depends(get_service(ServiceTypeService))
 ):
+    """Retrieve a single service type record by its ID.
+
+    Args:
+        type_id: The service type ID.
+        current_user: Authenticated user.
+        service: Injected ServiceTypeService instance.
+
+    Returns:
+        ServiceTypeSchema object.
+
+    Raises:
+        HTTPException 404: If the service type is not found.
+    """
     item = service.get(type_id)
     if not item:
         raise HTTPException(status_code=404, detail='Service type not found')
@@ -39,6 +61,16 @@ def create_item(
     _auth: UserModel = Depends(require_permission()),
     service: ServiceTypeService = Depends(get_service(ServiceTypeService))
 ):
+    """Create a new service type record.
+
+    Args:
+        item_in: Service type creation data (type_name, description, price, market_price).
+        _auth: Authenticated user (permission check only).
+        service: Injected ServiceTypeService instance.
+
+    Returns:
+        The created ServiceTypeSchema object.
+    """
     return service.create(
         type_name=item_in.type_name,
         description=item_in.description,
@@ -54,6 +86,20 @@ def update_item(
     _auth: UserModel = Depends(require_permission()),
     service: ServiceTypeService = Depends(get_service(ServiceTypeService))
 ):
+    """Update an existing service type record.
+
+    Args:
+        type_id: The service type ID.
+        item_in: Partial update data as a dictionary.
+        _auth: Authenticated user (permission check only).
+        service: Injected ServiceTypeService instance.
+
+    Returns:
+        The updated ServiceTypeSchema object.
+
+    Raises:
+        HTTPException 404: If the service type is not found.
+    """
     item = service.update(type_id, item_in)
     if not item:
         raise HTTPException(status_code=404, detail='Service type not found')
@@ -66,6 +112,19 @@ def delete_item(
     _auth: UserModel = Depends(require_permission()),
     service: ServiceTypeService = Depends(get_service(ServiceTypeService))
 ):
+    """Delete a service type record (soft delete).
+
+    Args:
+        type_id: The service type ID.
+        _auth: Authenticated user (permission check only).
+        service: Injected ServiceTypeService instance.
+
+    Returns:
+        dict with success status.
+
+    Raises:
+        HTTPException 404: If the service type is not found.
+    """
     item = service.delete(type_id)
     if not item:
         raise HTTPException(status_code=404, detail='Service type not found')

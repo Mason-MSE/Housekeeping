@@ -9,6 +9,7 @@ from model.Base import Base
 
 
 class InspectionModel(Base):
+    """Service order quality inspection record mapped to the 'inspection' table."""
     __tablename__ = 'inspection'
 
     inspection_id: Mapped[int] = mapped_column(Integer, primary_key=True)

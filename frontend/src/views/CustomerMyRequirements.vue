@@ -5,36 +5,53 @@ import { transactionApi } from '@/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
+// User store for role/permission information
 const userStore = useUserStore()
+// Loading state for the data table
 const loading = ref(false)
 
+// List of customer requirements
 const requirements = ref<any[]>([])
+// Total number of requirements matching the query
 const total = ref(0)
+// Current pagination page
 const page = ref(1)
+// Number of items per page
 const pageSize = ref(20)
 
+// Filter criteria for the requirements list
 const filters = ref({
   requirement_id: '' as string,
   status: null as number | null,
   property_type: '',
   service_type: '',
-  /** Customer-only: scope of rows you created (not cleaner assignments). */
+  // Customer-only: scope of rows you created (not cleaner assignments)
   portal_scope: 'all' as 'all' | 'published' | 'draft'
 })
 
+// Array of role names for the current user
 const userRoles = computed(() => userStore.userInfo?.roles || [userStore.userInfo?.role || 'guest'])
+// Whether the current user has a guest/customer role
 const isGuest = computed(() => userRoles.value.some(r => ['guest', 'customer', 'user'].includes(r.toLowerCase())))
 
+// The current customer's user ID
 const userId = computed(() => userStore.userInfo?.id || userStore.userInfo?.userId)
 
+// Dialog visibility for cleaner assignment
 const showAssignDialog = ref(false)
+// The requirement currently being assigned
 const selectedRequirement = ref<any>(null)
+// The selected cleaner ID for assignment
 const selectedCleanerId = ref<number | null>(null)
+// Loading state during assignment submission
 const assignLoading = ref(false)
 
+// Dialog visibility for cleaner profile view
 const showCleanerProfile = ref(false)
+// The selected cleaner profile data
 const selectedCleanerProfile = ref<any>(null)
 
+// Maps requirement status numbers to display labels
 const statusTextMap: Record<number, string> = {
   0: 'Pending',
   1: 'Assigned',
@@ -43,6 +60,7 @@ const statusTextMap: Record<number, string> = {
   4: 'Cancelled'
 }
 
+// Options for requirement status filter
 const statusOptions = [
   { value: 0, label: 'Pending' },
   { value: 1, label: 'Assigned' },
@@ -51,7 +69,9 @@ const statusOptions = [
   { value: 4, label: 'Cancelled' }
 ]
 
+// Available property type options
 const propertyTypes = ['House', 'Apartment', 'Villa', 'Condo', 'Townhouse', 'Studio']
+// Fallback service types when portal data is not available
 const serviceTypesFallback = [
   'Standard Cleaning',
   'Deep Cleaning',
@@ -59,8 +79,10 @@ const serviceTypesFallback = [
   'Move-out Cleaning',
   'Post-Construction'
 ]
+// Service types loaded from the portal API
 const serviceTypesFromPortal = ref<any[]>([])
 
+// Computed list of service type options (from portal or fallback)
 const serviceTypeOptions = computed(() => {
   if (serviceTypesFromPortal.value.length) {
     return serviceTypesFromPortal.value.map((s: any) => s.type_name).filter(Boolean)
@@ -68,9 +90,13 @@ const serviceTypeOptions = computed(() => {
   return serviceTypesFallback
 })
 
+// Dialog visibility for create/edit requirement form
 const showCreateDialog = ref(false)
+// ID of the requirement being edited, null when creating
 const editingRequirementId = ref<number | null>(null)
+// Loading state during create/update submission
 const createSubmitting = ref(false)
+// Form data for creating/editing a requirement
 const createForm = ref({
   guest_name: '',
   guest_phone: '',
@@ -91,6 +117,7 @@ const createForm = ref({
   publish_to_portal: true
 })
 
+// Fetch available service types from the portal API
 const loadServiceTypes = async () => {
   try {
     const res = await portalApi.getServices()
@@ -100,6 +127,7 @@ const loadServiceTypes = async () => {
   }
 }
 
+// Open the dialog for creating a new requirement, pre-filling user info
 const openCreateRequirement = () => {
   const u = userStore.userInfo as any
   createForm.value = {
@@ -124,11 +152,12 @@ const openCreateRequirement = () => {
   showCreateDialog.value = true
 }
 
+// Reset editing requirement ID when the dialog is closed
 const onRequirementDialogClosed = () => {
   editingRequirementId.value = null
 }
 
-/** Map API value to el-date-picker value-format ``YYYY-MM-DD HH:mm:ss``; clear legacy free-text. */
+// Map API value to el-date-picker value-format YYYY-MM-DD HH:mm:ss; clear legacy free-text
 const normalizePreferredTimeForPicker = (raw: unknown): string => {
   if (raw == null || raw === '') return ''
   const s = String(raw).trim()
@@ -141,7 +170,7 @@ const normalizePreferredTimeForPicker = (raw: unknown): string => {
   return ''
 }
 
-/** True when requirement is not published on the portal (draft). Handles 0/'0'/false from API. */
+// Check whether a requirement is a draft (not published on the portal)
 const isPortalDraft = (row: any) => {
   const p = row?.is_published
   if (p === true || p === 1 || p === '1') return false
@@ -149,6 +178,7 @@ const isPortalDraft = (row: any) => {
   return false
 }
 
+// Open the dialog for editing a draft requirement
 const openEditRequirement = (row: any) => {
   if (!isPortalDraft(row)) {
     ElMessage.warning('Only drafts (not yet published) can be edited')
@@ -177,6 +207,7 @@ const openEditRequirement = (row: any) => {
   showCreateDialog.value = true
 }
 
+// Submit the create/update requirement form to the API
 const submitCreateRequirement = async () => {
   if (!userId.value) return
   if (!createForm.value.guest_name?.trim() || !createForm.value.guest_phone?.trim()) {
@@ -239,6 +270,7 @@ const submitCreateRequirement = async () => {
   }
 }
 
+// Fetch the customer's requirements from the API
 const loadRequirements = async () => {
   if (!isGuest.value || !userId.value) {
     ElMessage.warning('Only customers can access this page')
@@ -269,11 +301,13 @@ const loadRequirements = async () => {
   }
 }
 
+// Trigger a search with current filters, resetting to page 1
 const handleSearch = () => {
   page.value = 1
   loadRequirements()
 }
 
+// Reset all filters and reload data from page 1
 const handleReset = () => {
   filters.value = {
     requirement_id: '',
@@ -286,6 +320,7 @@ const handleReset = () => {
   loadRequirements()
 }
 
+// Approve and assign a cleaner to a requirement after user confirmation
 const handleApprove = async (requirement: any, cleaner: any) => {
   try {
     await ElMessageBox.confirm(
@@ -312,11 +347,13 @@ const handleApprove = async (requirement: any, cleaner: any) => {
   }
 }
 
+// Open the dialog to view a cleaner's full profile
 const viewCleanerProfile = (app: any) => {
   selectedCleanerProfile.value = app
   showCleanerProfile.value = true
 }
 
+// Process payment for a completed requirement order
 const handlePayNow = async (row: any) => {
   if (!row?.order_id) {
     ElMessage.warning('No payable order found for this requirement')
@@ -332,20 +369,24 @@ const handlePayNow = async (row: any) => {
   }
 }
 
+// Return the Element Plus tag type for a given requirement status
 const getStatusType = (status: number) => {
   const types = ['warning', 'success', 'primary', 'info', 'danger']
   return types[status] || 'info'
 }
 
+// Return the Element Plus tag type for a given cleaner application status
 const getApplicationStatusType = (status: number) => {
   const types = ['warning', 'success', 'danger']
   return types[status] || 'info'
 }
 
+// Generate an array of booleans for star display based on rating
 const getRatingStars = (rating: number) => {
   return Array(5).fill(0).map((_, i) => i < rating)
 }
 
+// Lifecycle hook: load service types and requirements on mount if user is a guest
 onMounted(() => {
   if (isGuest.value) {
     loadServiceTypes()

@@ -3,7 +3,9 @@ import { ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { serviceOrderApi } from '@/api'
 
+// Loading state for data fetching
 const loading = ref(false)
+// List of staff members (hardcoded mock data)
 const staffList = ref([
   { id: 1, name: 'Zhang San', employee_no: 'EMP001', position: 'Room Cleaner', phone: '13800138001', status: 1 },
   { id: 2, name: 'Li Si', employee_no: 'EMP002', position: 'Room Cleaner', phone: '13800138002', status: 1 },
@@ -13,7 +15,9 @@ const staffList = ref([
 ])
 
 const positionOptions = ['Room Cleaner', 'Supervisor', 'Logistics', 'Manager']
+// Dialog visibility for create/edit staff
 const dialogVisible = ref(false)
+// Form data for create/edit staff
 const formData = ref({
   id: null,
   name: '',
@@ -22,23 +26,32 @@ const formData = ref({
   phone: ''
 })
 
+// Dialog visibility for assign task
 const assignDialogVisible = ref(false)
+// Staff ID being assigned
 const assignStaffId = ref(null)
+// Staff name being assigned
 const assignStaffName = ref('')
+// List of pending orders for assignment
 const pendingOrders = ref([])
+// Selected order ID for assignment
 const selectedOrderId = ref(null)
+// Loading state for assignment
 const assignLoading = ref(false)
 
+// Open dialog to add a new staff member
 const handleAdd = () => {
   formData.value = { id: null, name: '', employee_no: '', position: '', phone: '' }
   dialogVisible.value = true
 }
 
+// Open dialog to edit an existing staff member
 const handleEdit = (row: any) => {
   formData.value = { ...row }
   dialogVisible.value = true
 }
 
+// Delete a staff member after confirmation
 const handleDelete = (row: any) => {
   ElMessageBox.confirm(`Are you sure you want to delete staff ${row.name}?`, 'Confirm', {
     confirmButtonText: 'Confirm',
@@ -49,11 +62,13 @@ const handleDelete = (row: any) => {
   })
 }
 
+// Submit the create/edit staff form
 const handleSubmit = () => {
   ElMessage.success(formData.value.id ? 'Updated successfully' : 'Created successfully')
   dialogVisible.value = false
 }
 
+// Open the assign task dialog and load pending orders
 const handleAssignTask = async (row: any) => {
   assignStaffId.value = row.id
   assignStaffName.value = row.name
@@ -71,6 +86,7 @@ const handleAssignTask = async (row: any) => {
   }
 }
 
+// Confirm task assignment to the selected staff member
 const confirmAssignTask = async () => {
   if (!selectedOrderId.value) {
     ElMessage.warning('Please select an order')

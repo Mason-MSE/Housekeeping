@@ -3,13 +3,19 @@ import { ref, onMounted, computed } from 'vue'
 import { portalApi } from '@/api'
 import { ElMessage } from 'element-plus'
 
+// Loading state for data fetching
 const loading = ref(false)
 
+// List of tasks
 const tasks = ref<any[]>([])
+// Total count of tasks
 const total = ref(0)
+// Pagination page number
 const page = ref(1)
+// Pagination page size
 const pageSize = ref(20)
 
+// Filter options for task list
 const filters = ref({
   order_no: '',
   cleaner_name: '',
@@ -29,6 +35,7 @@ const statusOptions = [
 
 const propertyTypes = ['Apartment', 'House', 'Condo', 'Townhouse', 'Villa', 'Studio']
 
+// Load paginated tasks from the API
 const loadTasks = async () => {
   loading.value = true
   try {
@@ -43,11 +50,13 @@ const loadTasks = async () => {
   }
 }
 
+// Apply filters and reload tasks
 const handleSearch = () => {
   page.value = 1
   loadTasks()
 }
 
+// Reset filters to defaults and reload
 const handleReset = () => {
   filters.value = {
     order_no: '',
@@ -60,21 +69,25 @@ const handleReset = () => {
   loadTasks()
 }
 
+// Get the display label for a given status code
 const getStatusLabel = (status: number) => {
   const option = statusOptions.find(s => s.value === status)
   return option ? option.label : 'Unknown'
 }
 
+// Get the Element tag type for a given status code
 const getStatusType = (status: number) => {
   const types = ['info', 'success', 'warning', 'warning', 'success', 'danger']
   return types[status] || 'info'
 }
 
+// Format a date string for display
 const formatDate = (dateStr: string) => {
   if (!dateStr) return '-'
   return dateStr
 }
 
+// Lifecycle hook: load tasks on mount
 onMounted(() => {
   loadTasks()
 })

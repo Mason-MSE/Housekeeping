@@ -2,14 +2,19 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { notificationApi } from '@/api'
 
+// Pinia store managing notification state (list, unread count)
 export const useNotificationStore = defineStore('notification', () => {
+  // List of all notifications
   const notifications = ref([])
+  // Count of unread notifications
   const unreadCount = ref(0)
 
+  // Computed list of notifications that are not yet read
   const unreadNotifications = computed(() =>
     notifications.value.filter((n) => n.is_read === 0 || n.is_read === false)
   )
 
+  // Fetch notifications from the API with optional parameters
   async function fetchNotifications(params) {
     try {
       const response = await notificationApi.list(params)
@@ -23,6 +28,7 @@ export const useNotificationStore = defineStore('notification', () => {
     }
   }
 
+  // Fetch the count of unread notifications from the API
   async function fetchUnreadCount() {
     try {
       const response = await notificationApi.getUnreadCount()
@@ -35,6 +41,7 @@ export const useNotificationStore = defineStore('notification', () => {
     }
   }
 
+  // Mark a single notification as read by its ID
   async function markAsRead(id) {
     try {
       const notification = notifications.value.find(n => n.id === id)
@@ -53,6 +60,7 @@ export const useNotificationStore = defineStore('notification', () => {
     }
   }
 
+  // Mark all notifications as read
   async function markAllAsRead() {
     try {
       await notificationApi.markAllAsRead()
@@ -67,6 +75,7 @@ export const useNotificationStore = defineStore('notification', () => {
     }
   }
 
+  // Delete a notification by its ID and update local state
   async function deleteNotification(id) {
     try {
       await notificationApi.delete(id)
@@ -85,6 +94,7 @@ export const useNotificationStore = defineStore('notification', () => {
     }
   }
 
+  // Add a notification to the beginning of the list and update unread count
   function addNotification(notification) {
     notifications.value.unshift(notification)
     if (notification.is_read === 0 || notification.is_read === false) {
@@ -92,6 +102,7 @@ export const useNotificationStore = defineStore('notification', () => {
     }
   }
 
+  // Clear all notifications and reset the unread count
   function clearNotifications() {
     notifications.value = []
     unreadCount.value = 0

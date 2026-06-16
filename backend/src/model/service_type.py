@@ -9,6 +9,7 @@ from model.Base import Base
 
 
 class ServiceTypeModel(Base):
+    """Service category/type definition mapped to the 'service_type' table."""
     __tablename__ = 'service_type'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

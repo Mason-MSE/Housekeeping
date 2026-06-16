@@ -6,7 +6,9 @@ import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
 const userStore = useUserStore()
+// Loading state for dashboard data
 const loading = ref(false)
+// Dashboard statistics data
 const statistics = ref({
   todayOrders: 0,
   pendingOrders: 0,
@@ -16,8 +18,10 @@ const statistics = ref({
   todayCompleted: 0
 })
 
+// Recent orders list for the table
 const recentOrders = ref([])
 
+// Status display mapping with label and tag type
 const statusOptions = {
   0: { label: 'Pending', type: 'info' },
   1: { label: 'Assigned', type: 'warning' },
@@ -27,6 +31,7 @@ const statusOptions = {
   5: { label: 'Cancelled', type: 'danger' }
 }
 
+// Fetch dashboard statistics and recent orders from API
 const fetchData = async () => {
   loading.value = true
   try {
@@ -58,19 +63,23 @@ onMounted(() => {
   fetchData()
 })
 
+// Get tag type string for order status
 const getStatusType = (status: number) => {
   return statusOptions[status]?.type || 'info'
 }
 
+// Get human-readable label for order status
 const getStatusLabel = (status: number) => {
   return statusOptions[status]?.label || 'Unknown'
 }
 
+// Format date string for display
 const formatDate = (date: string) => {
   if (!date) return '-'
   return new Date(date).toLocaleString('en-US')
 }
 
+// Navigate to the orders page
 const goToOrders = () => {
   router.push('/orders')
 }

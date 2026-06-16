@@ -9,6 +9,7 @@ from model.Base import Base
 
 
 class CleanerApplicationModel(Base):
+    """Cleaner application for a customer requirement, mapped to the 'cleaner_application' table."""
     __tablename__ = 'cleaner_application'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

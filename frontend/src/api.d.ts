@@ -1,3 +1,4 @@
+// Type declarations for the @/api module
 declare module '@/api' {
   export const portalApi: any
   export const serviceOrderApi: any
@@ -8,6 +9,7 @@ declare module '@/api' {
   export const walletApi: any
 }
 
+// Type declarations for individual API modules under @/api/*
 declare module '@/api/*' {
   const api: any
   export default api

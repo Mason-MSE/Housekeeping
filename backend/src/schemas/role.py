@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 
 class RoleSchema(BaseModel):
+    """Schema representing a role."""
     id: Optional[int] = None
     role_name: Optional[str] = Field(None, max_length=50)
     role_code: Optional[str] = Field(None, max_length=50)
@@ -24,6 +25,7 @@ class RoleSchema(BaseModel):
 
 
 class RoleCreateSchema(BaseModel):
+    """Schema for creating a new role."""
     role_name: str = Field(..., min_length=1, max_length=50)
     role_code: Optional[str] = Field(None, max_length=50)
     description: Optional[str] = Field(None, max_length=255)
@@ -33,6 +35,7 @@ class RoleCreateSchema(BaseModel):
 
 
 class RoleUpdateSchema(BaseModel):
+    """Schema for updating an existing role."""
     role_name: Optional[str] = Field(None, max_length=50)
     role_code: Optional[str] = Field(None, max_length=50)
     description: Optional[str] = Field(None, max_length=255)

@@ -68,11 +68,15 @@ const emit = defineEmits<{
   (e: 'apply', requirement: any): void
 }>()
 
+// Current page number for pagination
 const currentPage = ref(1)
+// Number of items per page
 const pageSize = ref(8)
 
+// Total number of items across all pages
 const totalItems = computed(() => props.requirements.length)
 
+// Returns the requirements sliced for the current page
 const paginatedRequirements = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
   const end = start + pageSize.value

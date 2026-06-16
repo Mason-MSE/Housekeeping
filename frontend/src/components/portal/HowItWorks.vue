@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Calendar, User, Check, Sunny } from '@element-plus/icons-vue'
 
+// The four-step process for how the service works
 const steps = [
   {
     icon: Calendar,

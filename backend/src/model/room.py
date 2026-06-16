@@ -7,6 +7,7 @@ from model.Base import Base
 
 
 class RoomModel(Base):
+    """Hotel room record mapped to the 'room' table."""
     __tablename__ = 'room'
 
     id = mapped_column(Integer, primary_key=True)

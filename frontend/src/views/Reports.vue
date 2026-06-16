@@ -3,9 +3,12 @@ import { ref, onMounted } from 'vue'
 import { walletApi, serviceOrderApi } from '@/api'
 import { ElMessage } from 'element-plus'
 
+// Date range filter for reports
 const dateRange = ref([])
+// Loading state for data fetching
 const loading = ref(false)
 
+// Summary report statistics
 const reportData = ref({
   totalOrders: 156,
   completedOrders: 132,
@@ -15,8 +18,10 @@ const reportData = ref({
   staffUtilization: 85
 })
 
+// Cleaner earnings data for settlement
 const cleanerEarnings = ref([])
 
+// Fetch cleaner earnings data from the API
 const fetchCleanerEarnings = async () => {
   try {
     loading.value = true
@@ -29,6 +34,7 @@ const fetchCleanerEarnings = async () => {
   }
 }
 
+// Settle all completed orders for a given cleaner
 const handleSettle = async (cleanerId: number, cleanerName: string) => {
   try {
     const params = {
@@ -60,6 +66,7 @@ const handleSettle = async (cleanerId: number, cleanerName: string) => {
   }
 }
 
+// Daily order statistics for the chart
 const dailyStats = ref([
   { date: '02-22', completed: 28, pending: 4 },
   { date: '02-23', completed: 32, pending: 2 },
@@ -70,6 +77,7 @@ const dailyStats = ref([
   { date: '02-28', completed: 18, pending: 3 }
 ])
 
+// Top requested rooms data
 const topRooms = ref([
   { room: '1001', times: 12, avgTime: 35 },
   { room: '2003', times: 10, avgTime: 42 },
@@ -78,6 +86,7 @@ const topRooms = ref([
   { room: '2002', times: 7, avgTime: 40 }
 ])
 
+// Top performing staff data
 const topStaff = ref([
   { name: 'Zhang San', completed: 45, avgTime: 32, rating: 4.8 },
   { name: 'Li Si', completed: 42, avgTime: 35, rating: 4.7 },
@@ -85,6 +94,7 @@ const topStaff = ref([
   { name: 'Zhao Liu', completed: 35, avgTime: 40, rating: 4.5 }
 ])
 
+// Lifecycle hook: fetch cleaner earnings on mount
 onMounted(() => {
   fetchCleanerEarnings()
 })

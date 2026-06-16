@@ -4,15 +4,23 @@ import { permissionApi } from '@/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 
+// Loading state for the menu table
 const loading = ref(false)
+// List of menu items
 const menus = ref<any[]>([])
+// Current user's permission codes
 const permissionCodes = ref<string[]>([])
 
+// Dialog visibility for create/edit form
 const showDialog = ref(false)
+// Current dialog mode: create or edit
 const dialogMode = ref<'create' | 'edit'>('create')
+// Loading state for form submission
 const submitLoading = ref(false)
+// Reference to the form instance for validation
 const formRef = ref<FormInstance>()
 
+// Reactive form data model for menu create/edit
 const form = reactive({
   id: null as number | null,
   menu_name: '',
@@ -27,10 +35,14 @@ const rules: FormRules = {
   menu_name: [{ required: true, message: 'Menu name required', trigger: 'blur' }]
 }
 
+// Whether user has permission to create menus
 const canCreate = computed(() => permissionCodes.value.includes('menu:create'))
+// Whether user has permission to update menus
 const canUpdate = computed(() => permissionCodes.value.includes('menu:update'))
+// Whether user has permission to delete menus
 const canDelete = computed(() => permissionCodes.value.includes('menu:delete'))
 
+// Load current user's permission codes
 const loadPermissions = async () => {
   try {
     const res = await permissionApi.getMyPermissions()
@@ -41,6 +53,7 @@ const loadPermissions = async () => {
   }
 }
 
+// Load all menus from the API
 const loadMenus = async () => {
   loading.value = true
   try {
@@ -55,6 +68,7 @@ const loadMenus = async () => {
   }
 }
 
+// Reset form fields to default values
 const resetForm = () => {
   form.id = null
   form.menu_name = ''
@@ -66,12 +80,14 @@ const resetForm = () => {
   formRef.value?.resetFields()
 }
 
+// Open dialog for creating a new menu
 const openCreate = () => {
   dialogMode.value = 'create'
   resetForm()
   showDialog.value = true
 }
 
+// Open dialog for editing an existing menu
 const openEdit = (row: any) => {
   dialogMode.value = 'edit'
   form.id = row.id
@@ -84,6 +100,7 @@ const openEdit = (row: any) => {
   showDialog.value = true
 }
 
+// Submit create/edit menu form to the API
 const submit = async () => {
   if (!formRef.value) return
   await formRef.value.validate(async (ok) => {
@@ -115,6 +132,7 @@ const submit = async () => {
   })
 }
 
+// Confirm and delete a menu after user confirmation
 const confirmDelete = async (row: any) => {
   try {
     await ElMessageBox.confirm(

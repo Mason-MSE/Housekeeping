@@ -9,18 +9,27 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
+// Whether the sidebar is collapsed
 const isCollapse = ref(false)
+// Current wallet balance information
 const walletInfo = ref({ balance: 0 })
+// Unread notification count
 const notificationCount = ref(0)
+// List of notifications for the dropdown
 const notificationList = ref([])
+// Whether the notification dropdown is visible
 const notificationDropdownVisible = ref(false)
+// Dynamic menu items loaded from the server
 const dynamicMenus = ref<any[]>([])
+// Permission codes for the current user
 const userPermissions = ref<string[]>([])
 
+// Checks whether the current theme is dark mode
 const isDarkMode = computed(() => {
   return document.documentElement.classList.contains('dark')
 })
 
+// Fetches dynamic menu items from the server based on user permissions
 const loadDynamicMenus = async () => {
   try {
     const res = await permissionApi.getMyMenus()
@@ -31,6 +40,7 @@ const loadDynamicMenus = async () => {
   }
 }
 
+// Loads the current user's permission codes from the server
 const loadUserPermissions = async () => {
   try {
     const res = await permissionApi.getMyPermissions()
@@ -41,10 +51,12 @@ const loadUserPermissions = async () => {
   }
 }
 
+// Checks whether the user has a specific permission code
 const hasPermission = (permissionCode: string): boolean => {
   return userPermissions.value.includes(permissionCode)
 }
 
+// Computes the sidebar menu items from dynamic menus or defaults based on permissions
 const menuItems = computed(() => {
   if (dynamicMenus.value && dynamicMenus.value.length > 0) {
     return dynamicMenus.value.map((m: any) => ({
@@ -82,12 +94,15 @@ const menuItems = computed(() => {
   return defaultMenus
 })
 
+// Returns the current active route path for highlighting the sidebar menu
 const activeMenu = computed(() => route.path)
 
+// Navigates to the selected menu path
 const handleMenuSelect = (path: string) => {
   router.push(path)
 }
 
+// Prompts the user for logout confirmation and performs logout
 const handleLogout = () => {
   ElMessageBox.confirm('Are you sure to logout?', 'Confirm', {
     confirmButtonText: 'Yes',
@@ -99,6 +114,7 @@ const handleLogout = () => {
   })
 }
 
+// Fetches the current wallet balance from the server
 const fetchWallet = async () => {
   try {
     const res = await walletApi.get()
@@ -108,6 +124,7 @@ const fetchWallet = async () => {
   }
 }
 
+// Fetches the unread notification count from the server
 const fetchNotifications = async () => {
   try {
     const res = await notificationApi.getUnreadCount()
@@ -117,6 +134,7 @@ const fetchNotifications = async () => {
   }
 }
 
+// Fetches the full notification list for the dropdown
 const fetchNotificationList = async () => {
   try {
     const res = await notificationApi.list({ page: 1, page_size: 10 })
@@ -127,6 +145,7 @@ const fetchNotificationList = async () => {
   }
 }
 
+// Marks a notification as read and navigates to its link if provided
 const handleNotificationClick = async (notification: any) => {
   if (!notification.is_read) {
     try {
@@ -143,12 +162,14 @@ const handleNotificationClick = async (notification: any) => {
   }
 }
 
+// Fetches the notification list when the dropdown is opened
 const handleNotificationDropdown = async (visible: boolean) => {
   if (visible) {
     await fetchNotificationList()
   }
 }
 
+// Formats a timestamp into a human-readable relative time string
 const formatTime = (time: string) => {
   if (!time) return ''
   const date = new Date(time)
@@ -165,6 +186,7 @@ const formatTime = (time: string) => {
   return date.toLocaleDateString()
 }
 
+// Lifecycle hook: initializes wallet, notifications, menus, and permissions on mount
 onMounted(() => {
   fetchWallet()
   fetchNotifications()

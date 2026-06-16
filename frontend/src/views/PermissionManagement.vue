@@ -4,22 +4,36 @@ import { permissionApi } from '@/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 
+// Loading state for data fetching
 const loading = ref(false)
+// Full list of permissions
 const permissions = ref<any[]>([])
+// Permission codes the current user has
 const permissionCodes = ref<string[]>([])
 
+// Search keyword
 const keyword = ref('')
+// Pagination page number
 const page = ref(1)
+// Pagination page size
 const pageSize = ref(20)
 
+// Dialog visibility for create/edit
 const showDialog = ref(false)
+// Dialog visibility for viewing detail
 const showViewDialog = ref(false)
+// Dialog mode (create or edit)
 const dialogMode = ref<'create' | 'edit'>('create')
+// Loading state for form submission
 const submitLoading = ref(false)
+// Form reference for validation
 const formRef = ref<FormInstance>()
+// Detail data for view dialog
 const viewDetail = ref<any>(null)
+// Original permission code before edit
 const editOriginalCode = ref('')
 
+// Reactive form model for create/edit
 const form = reactive({
   id: null as number | null,
   permission_code: '',
@@ -32,11 +46,16 @@ const rules: FormRules = {
   permission_name: [{ required: true, message: 'Name required', trigger: 'blur' }]
 }
 
+// Computed whether the user has permission:view
 const canView = computed(() => permissionCodes.value.includes('permission:view'))
+// Computed whether the user has permission:create
 const canCreate = computed(() => permissionCodes.value.includes('permission:create'))
+// Computed whether the user has permission:update
 const canUpdate = computed(() => permissionCodes.value.includes('permission:update'))
+// Computed whether the user has permission:delete
 const canDelete = computed(() => permissionCodes.value.includes('permission:delete'))
 
+// Computed list of permissions filtered by keyword
 const filteredPermissions = computed(() => {
   const q = keyword.value.trim().toLowerCase()
   if (!q) return permissions.value
@@ -48,13 +67,16 @@ const filteredPermissions = computed(() => {
   })
 })
 
+// Computed total count after filtering
 const totalFiltered = computed(() => filteredPermissions.value.length)
 
+// Computed paginated slice of filtered permissions
 const pagedPermissions = computed(() => {
   const start = (page.value - 1) * pageSize.value
   return filteredPermissions.value.slice(start, start + pageSize.value)
 })
 
+// Load the current user's permission codes
 const loadMyPermissions = async () => {
   try {
     const res = await permissionApi.getMyPermissions()
@@ -65,6 +87,7 @@ const loadMyPermissions = async () => {
   }
 }
 
+// Load all permissions from the API
 const loadPermissions = async () => {
   if (!canView.value) {
     permissions.value = []
@@ -83,19 +106,23 @@ const loadPermissions = async () => {
   }
 }
 
+// Handle search: reset to page 1
 const handleSearch = () => {
   page.value = 1
 }
 
+// Reset search keyword and page
 const handleResetFilter = () => {
   keyword.value = ''
   page.value = 1
 }
 
+// Reset to page 1 when page size changes
 const handlePageSizeChange = () => {
   page.value = 1
 }
 
+// Reset the create/edit form to defaults
 const resetForm = () => {
   form.id = null
   form.permission_code = ''
@@ -105,12 +132,14 @@ const resetForm = () => {
   formRef.value?.resetFields()
 }
 
+// Open the create permission dialog
 const openCreate = () => {
   dialogMode.value = 'create'
   resetForm()
   showDialog.value = true
 }
 
+// Open the edit permission dialog with row data
 const openEdit = (row: any) => {
   dialogMode.value = 'edit'
   form.id = row.id
@@ -121,6 +150,7 @@ const openEdit = (row: any) => {
   showDialog.value = true
 }
 
+// Open the permission detail dialog
 const openView = async (row: any) => {
   viewDetail.value = null
   showViewDialog.value = true
@@ -136,6 +166,7 @@ const openView = async (row: any) => {
   }
 }
 
+// Submit the create/edit permission form
 const submit = async () => {
   if (!formRef.value) return
   await formRef.value.validate(async (ok) => {
@@ -183,6 +214,7 @@ const submit = async () => {
   })
 }
 
+// Delete a permission after confirmation
 const confirmDelete = async (row: any) => {
   try {
     await ElMessageBox.confirm(
@@ -201,6 +233,7 @@ const confirmDelete = async (row: any) => {
   }
 }
 
+// Lifecycle hook: load permissions and user permissions on mount
 onMounted(async () => {
   await loadMyPermissions()
   await loadPermissions()

@@ -5,34 +5,58 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import type { FormInstance, FormRules } from 'element-plus'
 
+// User store instance
 const userStore = useUserStore()
+// Computed current user ID
 const currentUserId = computed(() => userStore.userInfo?.id ?? userStore.userInfo?.userId)
 
+// Loading state for data fetching
 const loading = ref(false)
+// List of users
 const users = ref<any[]>([])
+// List of roles
 const roles = ref<any[]>([])
+// Total count of users
 const total = ref(0)
+// Pagination page number
 const page = ref(1)
+// Pagination page size
 const pageSize = ref(20)
 
+// Current user's permission codes
 const permissionCodes = ref<string[]>([])
+// Computed whether the user has user:view
 const canView = computed(() => permissionCodes.value.includes('user:view'))
+// Computed whether the user has user:create
 const canCreate = computed(() => permissionCodes.value.includes('user:create'))
+// Computed whether the user has user:update
 const canUpdate = computed(() => permissionCodes.value.includes('user:update'))
+// Computed whether the user has user:delete
 const canDelete = computed(() => permissionCodes.value.includes('user:delete'))
 
+// Dialog visibility for role assignment
 const showRoleDialog = ref(false)
+// User selected for role assignment
 const selectedUser = ref<any>(null)
+// Selected role IDs for the user
 const selectedRoles = ref<number[]>([])
+// Loading state for role operations
 const roleLoading = ref(false)
 
+// Dialog visibility for create user
 const showCreateDialog = ref(false)
+// Dialog visibility for edit user
 const showEditDialog = ref(false)
+// Loading state for create submission
 const createSubmitLoading = ref(false)
+// Loading state for edit submission
 const editSubmitLoading = ref(false)
+// Form reference for create validation
 const createFormRef = ref<FormInstance>()
+// Form reference for edit validation
 const editFormRef = ref<FormInstance>()
 
+// Reactive form model for creating a user
 const createForm = reactive({
   username: '',
   password: '',
@@ -43,6 +67,7 @@ const createForm = reactive({
   role_ids: [] as number[]
 })
 
+// Reactive form model for editing a user
 const editForm = reactive({
   id: 0,
   username: '',
@@ -62,11 +87,13 @@ const editRules: FormRules = {
   full_name: [{ required: true, message: 'Full name required', trigger: 'blur' }]
 }
 
+// Computed paginated slice of users
 const pagedUsers = computed(() => {
   const start = (page.value - 1) * pageSize.value
   return users.value.slice(start, start + pageSize.value)
 })
 
+// Load the current user's permission codes
 const loadMyPermissions = async () => {
   try {
     const res = await permissionApi.getMyPermissions()
@@ -77,6 +104,7 @@ const loadMyPermissions = async () => {
   }
 }
 
+// Load all users from the API
 const loadUsers = async () => {
   loading.value = true
   try {
@@ -93,6 +121,7 @@ const loadUsers = async () => {
   }
 }
 
+// Load all roles from the API
 const loadRoles = async () => {
   try {
     const res = await roleApi.list()
@@ -102,6 +131,7 @@ const loadRoles = async () => {
   }
 }
 
+// Reset the create user form to defaults
 const resetCreateForm = () => {
   createForm.username = ''
   createForm.password = ''
@@ -113,11 +143,13 @@ const resetCreateForm = () => {
   createFormRef.value?.resetFields()
 }
 
+// Open the create user dialog
 const openCreate = () => {
   resetCreateForm()
   showCreateDialog.value = true
 }
 
+// Submit the create user form
 const submitCreate = async () => {
   if (!createFormRef.value) return
   await createFormRef.value.validate(async (ok) => {
@@ -144,6 +176,7 @@ const submitCreate = async () => {
   })
 }
 
+// Open the edit user dialog with row data
 const openEdit = (row: any) => {
   editForm.id = row.id
   editForm.username = row.username || ''
@@ -155,6 +188,7 @@ const openEdit = (row: any) => {
   showEditDialog.value = true
 }
 
+// Submit the edit user form
 const submitEdit = async () => {
   if (!editFormRef.value) return
   await editFormRef.value.validate(async (ok) => {
@@ -186,6 +220,7 @@ const submitEdit = async () => {
   })
 }
 
+// Soft-delete a user after confirmation
 const confirmDelete = async (row: any) => {
   if (Number(row.id) === Number(currentUserId.value)) {
     ElMessage.warning('Cannot delete your own account')
@@ -207,6 +242,7 @@ const confirmDelete = async (row: any) => {
   }
 }
 
+// Toggle a user's active/disabled status
 const toggleUserStatus = async (row: any, active: boolean) => {
   const next = active ? 1 : 0
   if (next !== 1 && Number(row.id) === Number(currentUserId.value)) {
@@ -224,12 +260,14 @@ const toggleUserStatus = async (row: any, active: boolean) => {
   }
 }
 
+// Open the dialog to assign roles to a user
 const openRoleDialog = async (user: any) => {
   selectedUser.value = user
   selectedRoles.value = user.roles?.map((r: any) => r.id) || []
   showRoleDialog.value = true
 }
 
+// Save the role assignments for the selected user
 const saveRoles = async () => {
   if (!selectedUser.value) return
   roleLoading.value = true
@@ -245,18 +283,22 @@ const saveRoles = async () => {
   }
 }
 
+// Get the Element tag type for a given user status
 const getStatusType = (status: number) => {
   return status === 1 ? 'success' : 'info'
 }
 
+// Get the display label for a given user status
 const getStatusLabel = (status: number) => {
   return status === 1 ? 'Active' : 'Disabled'
 }
 
+// Reset to page 1 when page size changes
 const handlePageSizeChange = () => {
   page.value = 1
 }
 
+// Lifecycle hook: load permissions, users, and roles on mount
 onMounted(() => {
   loadMyPermissions()
   loadUsers()

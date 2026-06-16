@@ -4,14 +4,21 @@ import { portalApi } from '@/api'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
+// User store for role/permission information
 const userStore = useUserStore()
+// Loading state for the data table
 const loading = ref(false)
 
+// List of tasks
 const tasks = ref<any[]>([])
+// Total number of tasks matching the query
 const total = ref(0)
+// Current pagination page
 const page = ref(1)
+// Number of items per page
 const pageSize = ref(20)
 
+// Filter criteria for the tasks list
 const filters = ref({
   order_no: '',
   cleaner_name: '',
@@ -20,11 +27,15 @@ const filters = ref({
   end_date: ''
 })
 
+// Date range picker model
 const dateRange = ref<[string, string] | null>(null)
 
+// Array of role names for the current user
 const userRoles = computed(() => userStore.userInfo?.roles || [userStore.userInfo?.role || 'guest'])
+// Whether the current user has an admin/manager role
 const isAdmin = computed(() => userRoles.value.some(r => ['admin', 'manager', 'administrator'].includes(r.toLowerCase())))
 
+// Options for task status filter
 const statusOptions = [
   { value: 0, label: 'Pending' },
   { value: 1, label: 'Accepted' },
@@ -34,6 +45,7 @@ const statusOptions = [
   { value: 5, label: 'Cancelled' }
 ]
 
+// Fetch the paginated list of tasks from the API
 const loadData = async () => {
   if (!isAdmin.value) return
   
@@ -60,11 +72,13 @@ const loadData = async () => {
   }
 }
 
+// Trigger a search with current filters, resetting to page 1
 const handleSearch = () => {
   page.value = 1
   loadData()
 }
 
+// Reset all filters and reload data from page 1
 const handleReset = () => {
   filters.value = {
     order_no: '',
@@ -78,6 +92,7 @@ const handleReset = () => {
   loadData()
 }
 
+// Update date filters when the date range picker changes
 const handleDateRangeChange = (val: [string, string] | null) => {
   if (val) {
     filters.value.start_date = val[0]
@@ -88,16 +103,19 @@ const handleDateRangeChange = (val: [string, string] | null) => {
   }
 }
 
+// Return the human-readable label for a given task status
 const getStatusLabel = (status: number) => {
   const option = statusOptions.find(s => s.value === status)
   return option ? option.label : 'Unknown'
 }
 
+// Return the Element Plus tag type for a given task status
 const getStatusType = (status: number) => {
   const types = ['info', 'success', 'warning', 'warning', 'success', 'danger']
   return types[status] || 'info'
 }
 
+// Lifecycle hook: load tasks data on mount
 onMounted(() => {
   loadData()
 })

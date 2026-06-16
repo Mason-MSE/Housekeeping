@@ -9,10 +9,12 @@ from schemas.housekeeping import AdminUserCreateSchema, UserCreateSchema, UserUp
 
 class UserService:
     def __init__(self, db: Session):
+        """Initialize the user service with a database session."""
         self.db = db
         self.crud = CRUDBase(UserModel)
 
     def _get_user_roles(self, user_id: int) -> list:
+        """Return a list of role dicts for the given user."""
         roles = (
             self.db.query(RoleModel)
             .join(UserRoleModel, UserRoleModel.role_id == RoleModel.id)
@@ -26,24 +28,29 @@ class UserService:
         return [{"id": r.id, "role_name": r.role_name} for r in roles]
 
     def _add_roles_to_user(self, user):
+        """Attach role info to a single user object."""
         if user:
             user.roles = self._get_user_roles(user.id)
         return user
 
     def _add_roles_to_users(self, users):
+        """Attach role info to a list of user objects."""
         for user in users:
             user.roles = self._get_user_roles(user.id)
         return users
 
     def get_all(self):
+        """Retrieve all users with their roles."""
         users = self.crud.get_all(self.db)
         return self._add_roles_to_users(users)
 
     def get(self, id: int):
+        """Retrieve a single user by ID with their roles."""
         user = self.crud.get(self.db, id)
         return self._add_roles_to_user(user)
 
     def create(self, item_in: UserCreateSchema):
+        """Create a new user with a hashed password."""
         data = item_in.model_dump(exclude={"password"}, exclude_unset=True)
         user = UserModel(**data, status=1)
         user.set_password(item_in.password)
@@ -84,6 +91,7 @@ class UserService:
         return self._add_roles_to_user(user)
 
     def update(self, id: int, item_in: UserUpdateSchema):
+        """Update a user's fields, including optional password change."""
         db_obj = self.crud.get(self.db, id)
         if not db_obj:
             return None
@@ -99,6 +107,7 @@ class UserService:
         return self._add_roles_to_user(db_obj)
 
     def delete(self, id: int):
+        """Soft delete a user by their ID."""
         db_obj = self.crud.get(self.db, id)
         if not db_obj:
             return None
@@ -106,6 +115,7 @@ class UserService:
         return {'ok': True}
 
     def get_by_role(self, role: str):
+        """Retrieve all users who have a specific role name."""
         role_obj = self.db.query(RoleModel).filter(RoleModel.role_name == role).first()
         if not role_obj:
             return []
@@ -117,6 +127,7 @@ class UserService:
         return self._add_roles_to_users(users)
 
     def change_password(self, user_id: int, old_password: str, new_password: str):
+        """Verify the old password and update it to a new one."""
         user = self.crud.get(self.db, user_id)
         if not user:
             return {"error": "User not found", "status_code": 404}

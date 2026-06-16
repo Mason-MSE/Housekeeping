@@ -3,6 +3,7 @@ from datetime import datetime, date, time
 from typing import Optional
 
 class ResourceSchema(BaseModel):
+    """Schema representing a resource (API endpoint)."""
     id: Optional[int] = None
     resource_name: Optional[str] = Field(None, max_length=100)
     resource_link: Optional[str] = Field(None, max_length=255)
@@ -20,6 +21,7 @@ class ResourceSchema(BaseModel):
         }
 
 class ResourceCreateSchema(BaseModel):
+    """Schema for creating a new resource."""
     id: int
     resource_name: Optional[str] = Field(None, max_length=100)
     resource_link: Optional[str] = Field(None, max_length=255)
@@ -32,6 +34,7 @@ class ResourceCreateSchema(BaseModel):
         from_attributes = True
 
 class ResourceUpdateSchema(BaseModel):
+    """Schema for updating an existing resource."""
     is_deleted: Optional[int] = None
 
     class Config:

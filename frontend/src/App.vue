@@ -9,6 +9,7 @@ import { useRoute } from 'vue-router'
 import NavBar from '@/components/NavBar.vue'
 
 const route = useRoute()
+// Determines whether the navigation bar should be shown based on the current route path
 const showNavBar = computed(() => {
   const noNavPaths = ['/login', '/']
   return !noNavPaths.includes(route.path)

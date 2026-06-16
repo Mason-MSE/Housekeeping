@@ -4,20 +4,31 @@ import { portalService } from '@/services'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
+// User store for role/permission information
 const userStore = useUserStore()
+// Loading state for the data table
 const loading = ref(false)
 
+// List of cleaner task applications
 const tasks = ref<any[]>([])
+// Total number of tasks matching the query
 const total = ref(0)
+// Current pagination page
 const page = ref(1)
+// Number of items per page
 const pageSize = ref(20)
+// Currently selected status filter value
 const selectedStatus = ref<number | undefined>(undefined)
 
+// The current cleaner's user ID
 const cleanerId = computed(() => userStore.userInfo?.id)
+// Whether the current user has a cleaner/staff/employee role
 const isCleaner = computed(() => ['staff', 'cleaner', 'employee'].includes(userInfo.value?.role))
 
+// The current user's info object
 const userInfo = computed(() => userStore.userInfo)
 
+// Options for task status filter
 const statusOptions = [
   { value: undefined, label: 'All' },
   { value: 0, label: 'Pending', type: 'warning' },
@@ -25,6 +36,7 @@ const statusOptions = [
   { value: 2, label: 'Rejected', type: 'danger' },
 ]
 
+// Fetch the list of cleaner task applications from the API
 const loadApplications = async () => {
   if (!cleanerId.value || !isCleaner.value) return
   
@@ -46,22 +58,26 @@ const loadApplications = async () => {
   }
 }
 
+// Trigger a search and reset to page 1
 const handleSearch = () => {
   page.value = 1
   loadApplications()
 }
 
+// Handle pagination page change and reload data
 const handlePageChange = (newPage: number) => {
   page.value = newPage
   loadApplications()
 }
 
+// Handle page size change and reload data from page 1
 const handleSizeChange = (newSize: number) => {
   pageSize.value = newSize
   page.value = 1
   loadApplications()
 }
 
+// Return the Element Plus tag type for a given task status
 const getStatusType = (status: number) => {
   const types: Record<number, string> = { 
     0: 'warning', 
@@ -71,12 +87,14 @@ const getStatusType = (status: number) => {
   return types[status] || 'info'
 }
 
+// Filter the task list by a specific status value
 const filterByStatus = (status: number | undefined) => {
   selectedStatus.value = status
   page.value = 1
   loadApplications()
 }
 
+// Lifecycle hook: load applications on mount if user is a cleaner
 onMounted(() => {
   if (isCleaner.value) {
     loadApplications()

@@ -2,11 +2,13 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
 
+// Create an axios instance with base URL and timeout configuration
 const request = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 15000
 })
 
+// Attach the Bearer token from localStorage to every outgoing request
 request.interceptors.request.use(
   config => {
     const token = localStorage.getItem('token')
@@ -20,6 +22,7 @@ request.interceptors.request.use(
   }
 )
 
+// Handle responses globally: extract data on success, and show error messages on failure
 request.interceptors.response.use(
   response => {
     return response.data

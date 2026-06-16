@@ -11,6 +11,7 @@ const emit = defineEmits<{
   (e: 'order', service: any): void
 }>()
 
+// Mapping of service type IDs to their image URLs
 const serviceImages: Record<number, string> = {
   1: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400',
   2: 'https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=400',
@@ -20,6 +21,7 @@ const serviceImages: Record<number, string> = {
   6: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=400',
 }
 
+// Filters services by the search keyword (by name or description)
 const filteredServices = computed(() => {
   if (!props.searchKeyword) return props.services
   const keyword = props.searchKeyword.toLowerCase()
@@ -29,6 +31,7 @@ const filteredServices = computed(() => {
   )
 })
 
+// Emits the order event with the selected service
 const handleOrder = (service: any) => {
   emit('order', service)
 }

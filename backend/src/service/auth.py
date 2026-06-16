@@ -14,15 +14,18 @@ import qrcode
 
 class AuthService:
     def __init__(self, db: Session):
+        """Initialize the auth service with a database session."""
         self.db = db
 
     def _get_user_roles(self, user_id: int) -> list[str]:
+        """Return a list of role codes for the given user."""
         roles = self.db.query(RoleModel.role_code).join(
             UserRoleModel, UserRoleModel.role_id == RoleModel.id
         ).filter(UserRoleModel.user_id == user_id).all()
         return [r[0] for r in roles] if roles else []
 
     def register(self, username: str, password: str, full_name: str = None, email: str = None, enable_2fa: bool = False, role: str = 'guest'):
+        """Register a new user account, optionally enabling 2FA."""
         existing_user = self.db.query(UserModel).filter(UserModel.username == username).first()
         if existing_user:
             return {"error": "Username already exists", "status_code": 400}
@@ -88,6 +91,7 @@ class AuthService:
             }
 
     def verify_2fa(self, username: str, code: str):
+        """Verify a 2FA code and return an access token on success."""
         user = self.db.query(UserModel).filter(UserModel.username == username).first()
         if not user:
             return {"error": "Invalid credentials", "status_code": 401}
@@ -117,6 +121,7 @@ class AuthService:
         }
 
     def login(self, username: str, password: str):
+        """Authenticate a user and return an access token or prompt for 2FA."""
         user = self.db.query(UserModel).filter(UserModel.username == username).first()
         if not user:
             return {"error": "Invalid credentials", "status_code": 401}
@@ -153,6 +158,7 @@ class AuthService:
         }
 
     def login_with_2fa(self, username: str, password: str, code: str):
+        """Authenticate with password and 2FA code in a single step."""
         user = self.db.query(UserModel).filter(UserModel.username == username).first()
         if not user:
             return {"error": "Invalid credentials", "status_code": 401}

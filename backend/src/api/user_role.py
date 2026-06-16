@@ -19,15 +19,30 @@ router = APIRouter(prefix='/api/user-role', tags=['user_role'])
 
 @router.get('/', response_model=List[UserRoleSchema])
 def read_all(service: user_role = Depends(get_service(user_role))):
-    """
-    Retrieve all records.
+    """Retrieve all user-role association records.
+
+    Args:
+        service: Injected user_role service instance.
+
+    Returns:
+        List of UserRoleSchema objects.
     """
     return service.get_all()
 
 @router.get('/{user_id}/{role_id}', response_model=UserRoleSchema)
 def read_item(user_id, role_id, service: user_role = Depends(get_service(user_role))):
-    """
-    Retrieve a single record by primary key.
+    """Retrieve a single user-role association record by composite primary key.
+
+    Args:
+        user_id: The user ID.
+        role_id: The role ID.
+        service: Injected user_role service instance.
+
+    Returns:
+        UserRoleSchema object.
+
+    Raises:
+        HTTPException 404: If the record is not found.
     """
     db_obj = service.get(user_id, role_id)
     if not db_obj:
@@ -36,15 +51,32 @@ def read_item(user_id, role_id, service: user_role = Depends(get_service(user_ro
 
 @router.post('/', response_model=UserRoleSchema)
 def create_item(item_in: UserRoleCreateSchema, service: user_role = Depends(get_service(user_role))):
-    """
-    Create a new record.
+    """Create a new user-role association record.
+
+    Args:
+        item_in: User-role association creation data.
+        service: Injected user_role service instance.
+
+    Returns:
+        The created UserRoleSchema object.
     """
     return service.create(item_in)
 
 @router.put('/{user_id}/{role_id}', response_model=UserRoleSchema)
 def update_item(user_id, role_id, item_in: UserRoleUpdateSchema, service: user_role = Depends(get_service(user_role))):
-    """
-    Update an existing record by primary key.
+    """Update an existing user-role association record by composite primary key.
+
+    Args:
+        user_id: The user ID.
+        role_id: The role ID.
+        item_in: Update data (partial).
+        service: Injected user_role service instance.
+
+    Returns:
+        The updated UserRoleSchema object.
+
+    Raises:
+        HTTPException 404: If the record is not found.
     """
     db_obj = service.get(user_id, role_id)
     if not db_obj:
@@ -53,8 +85,18 @@ def update_item(user_id, role_id, item_in: UserRoleUpdateSchema, service: user_r
 
 @router.delete('/{user_id}/{role_id}')
 def delete_item(user_id, role_id, service: user_role = Depends(get_service(user_role))):
-    """
-    Delete a record by primary key.
+    """Delete a user-role association record by composite primary key.
+
+    Args:
+        user_id: The user ID.
+        role_id: The role ID.
+        service: Injected user_role service instance.
+
+    Returns:
+        dict with success status.
+
+    Raises:
+        HTTPException 404: If the record is not found.
     """
     db_obj = service.get(user_id, role_id)
     if not db_obj:
@@ -64,8 +106,14 @@ def delete_item(user_id, role_id, service: user_role = Depends(get_service(user_
 
 @router.post('/paginated', response_model=Dict[str, Any])
 def read_paginated(pageParam: PaginationRequest, service: user_role = Depends(get_service(user_role))):
-    """
-    Paginated list of records with optional filters and sorting.
+    """Paginated list of user-role records with optional filters and sorting.
+
+    Args:
+        pageParam: Pagination parameters including page, page_size, filters, and order_by.
+        service: Injected user_role service instance.
+
+    Returns:
+        dict with current_page, page_total, total, and items (list of UserRoleSchema).
     """
     filter_dict: Dict[str, Any] = {}
     if pageParam.filters:
